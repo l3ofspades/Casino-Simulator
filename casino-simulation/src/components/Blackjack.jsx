@@ -116,7 +116,9 @@ export default function Blackjack() {
       setGameOver(true);
     }
   }, [isPlayerTurn, gameOver, dealerHand, deck, playerScore]);
-
+useEffect(() => {
+    startGame(); // Start the game when component mounts
+  }, []);
   return (
     <div>
       <h2>Blackjack</h2>
