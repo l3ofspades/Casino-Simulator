@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import GameSelector from './GameSelector';
 import ChipWallet from './ChipWallet';
+import Blackjack from './Blackjack';
 
 function Game() {
   const [selectedGame, setSelectedGame] = useState(null);
@@ -13,7 +14,7 @@ function Game() {
       <GameSelector onGameSelect={setSelectedGame} />
 
 
-      {selectedGame === 'blackjack' && <div>BlackJack Game will go here</div>}
+      {selectedGame === 'blackjack' && <Blackjack />}
       {selectedGame === 'roulette' && <div>Roulette Game will go here</div>}
       {selectedGame === 'poker' && <div>Poker Game will go here</div>}
       </div>
