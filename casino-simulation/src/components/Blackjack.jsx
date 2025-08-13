@@ -1,152 +1,164 @@
+import { useState, useEffect } from "react";
 
-import { useState, useEffect } from 'react';
-
-const suits = ['♠', '♥', '♦', '♣'];
-const values = [
-  '2', '3', '4', '5', '6', '7', '8', '9', '10',
-  'J', 'Q', 'K', 'A'
-];
-
-// Helper: create a deck of cards
-function createDeck() {
-  const deck = [];
-  for (let suit of suits) {
-    for (let value of values) {
-      deck.push({ suit, value });
-    }
-  }
-  return deck;
-}
-
-// Helper: get card numeric value for blackjack
-function getCardValue(card) {
-  if (card.value === 'A') return 11;
-  if (['K', 'Q', 'J'].includes(card.value)) return 10;
-  return parseInt(card.value);
-}
-
-// Helper: calculate hand score (handling Aces as 1 or 11)
-function calculateScore(hand) {
-  let score = 0;
-  let aceCount = 0;
-  for (let card of hand) {
-    score += getCardValue(card);
-    if (card.value === 'A') aceCount++;
-  }
-  while (score > 21 && aceCount > 0) {
-    score -= 10;
-    aceCount--;
-  }
-  return score;
-}
-
-export default function Blackjack() {
-  const [deck, setDeck] = useState([]);
-  const [playerHand, setPlayerHand] = useState([]);
-  const [dealerHand, setDealerHand] = useState([]);
-  const [playerScore, setPlayerScore] = useState(0);
-  const [dealerScore, setDealerScore] = useState(0);
-  const [message, setMessage] = useState('');
-  const [isPlayerTurn, setIsPlayerTurn] = useState(true);
+function Blackjack() {
+  const [deckId, setDeckId] = useState(null);
+  const [playerCards, setPlayerCards] = useState([]);
+  const [dealerCards, setDealerCards] = useState([]);
   const [gameOver, setGameOver] = useState(false);
+  const [message, setMessage] = useState("");
 
-  // Start a new game
-  function startGame() {
-    const newDeck = createDeck().sort(() => Math.random() - 0.5);
-    const playerCards = [newDeck.pop(), newDeck.pop()];
-    const dealerCards = [newDeck.pop(), newDeck.pop()];
-    setDeck(newDeck);
-    setPlayerHand(playerCards);
-    setDealerHand(dealerCards);
-    setPlayerScore(calculateScore(playerCards));
-    setDealerScore(calculateScore(dealerCards));
-    setMessage('');
-    setIsPlayerTurn(true);
-    setGameOver(false);
-  }
-
-  // Player hits: add a card
-  function hit() {
-    if (!isPlayerTurn || gameOver) return;
-    const newDeck = [...deck];
-    const card = newDeck.pop();
-    const newPlayerHand = [...playerHand, card];
-    setPlayerHand(newPlayerHand);
-    setDeck(newDeck);
-    const score = calculateScore(newPlayerHand);
-    setPlayerScore(score);
-    if (score > 21) {
-      setMessage('Bust! You lose.');
-      setIsPlayerTurn(false);
-      setGameOver(true);
-    }
-  }
-
-  // Player stands: dealer's turn
-  function stand() {
-    if (!isPlayerTurn || gameOver) return;
-    setIsPlayerTurn(false);
-  }
-
-  // Dealer plays after player stands
+  // Create and shuffle a new deck when the component loads
   useEffect(() => {
-    if (!isPlayerTurn && !gameOver) {
-      let newDeck = [...deck];
-      let newDealerHand = [...dealerHand];
-      let score = calculateScore(newDealerHand);
+    const getDeck = async () => {
+      const res = await fetch(
+        "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1"
+      );
+      const data = await res.json();
+      setDeckId(data.deck_id);
+    };
+    getDeck();
+  }, []);
 
-      while (score < 17) {
-        const card = newDeck.pop();
-        newDealerHand.push(card);
-        score = calculateScore(newDealerHand);
-      }
-      setDealerHand(newDealerHand);
-      setDealerScore(score);
+  // Start a new hand
+  const startGame = async () => {
+    if (!deckId) return;
+    const drawRes = await fetch(
+      `https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=4`
+    );
+    const data = await drawRes.json();
 
-      // Determine winner
-      if (score > 21) {
-        setMessage('Dealer busts! You win!');
-      } else if (score < playerScore) {
-        setMessage('You win!');
-      } else if (score === playerScore) {
-        setMessage('Push (tie).');
-      } else {
-        setMessage('Dealer wins.');
-      }
+    setPlayerCards([data.cards[0], data.cards[2]]);
+    setDealerCards([data.cards[1], data.cards[3]]);
+    setGameOver(false);
+    setMessage("");
+  };
+
+  // Draw a card for the player
+  const hit = async () => {
+    if (!deckId || gameOver) return;
+    const drawRes = await fetch(
+      `https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`
+    );
+    const data = await drawRes.json();
+
+    const newHand = [...playerCards, data.cards[0]];
+    setPlayerCards(newHand);
+
+    if (calculateHand(newHand) > 21) {
+      setMessage("Bust! You lose.");
       setGameOver(true);
     }
-  }, [isPlayerTurn, gameOver, dealerHand, deck, playerScore]);
-useEffect(() => {
-    startGame(); // Start the game when component mounts
-  }, []);
+  };
+
+  // Dealer draws until reaching 17+
+  const stand = async () => {
+    let dealerHand = [...dealerCards];
+
+    while (calculateHand(dealerHand) < 17) {
+      const drawRes = await fetch(
+        `https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`
+      );
+      const data = await drawRes.json();
+      dealerHand.push(data.cards[0]);
+    }
+
+    setDealerCards(dealerHand);
+    determineWinner(playerCards, dealerHand);
+  };
+
+  // Calculate blackjack hand value
+  const calculateHand = (hand) => {
+    let value = 0;
+    let aces = 0;
+
+    hand.forEach((card) => {
+      if (["KING", "QUEEN", "JACK"].includes(card.value)) {
+        value += 10;
+      } else if (card.value === "ACE") {
+        value += 11;
+        aces += 1;
+      } else {
+        value += parseInt(card.value);
+      }
+    });
+
+    // Adjust for Aces
+    while (value > 21 && aces > 0) {
+      value -= 10;
+      aces -= 1;
+    }
+
+    return value;
+  };
+
+  // Decide winner
+  const determineWinner = (player, dealer) => {
+    const playerTotal = calculateHand(player);
+    const dealerTotal = calculateHand(dealer);
+
+    if (dealerTotal > 21 || playerTotal > dealerTotal) {
+      setMessage("You win!");
+    } else if (playerTotal < dealerTotal) {
+      setMessage("Dealer wins!");
+    } else {
+      setMessage("Push (tie)!");
+    }
+
+    setGameOver(true);
+  };
+
   return (
     <div>
       <h2>Blackjack</h2>
-      <div>
-        <strong>Your Hand ({playerScore}): </strong>
-        {playerHand.map((card, i) => (
-          <span key={i}>{card.value}{card.suit} </span>
-        ))}
+
+      <button onClick={startGame}>Start Game</button>
+      <div style={{ display: "flex", marginTop: "20px" }}>
+        <div style={{ marginRight: "50px" }}>
+          <h3>Dealer's Hand</h3>
+          <div style={{ display: "flex" }}>
+            {dealerCards.map((card, index) => (
+              <img
+                key={index}
+                src={
+                  !gameOver && index === 1 ? "https://via.placeholder.com/80x120?text=?" : card.image
+                }
+                alt={card.code}
+                style={{ width: "80px", marginRight: "5px" }
+                }
+              />
+            ))}
+          </div>
+          <p>Total: {calculateHand(dealerCards)}</p>
+        </div>
+
+        <div>
+          <h3>Your Hand</h3>
+          <div style={{ display: "flex" }}>
+            {playerCards.map((card, index) => (
+              <img
+                key={index}
+                src={card.image}
+                alt={card.code}
+                style={{ width: "80px", marginRight: "5px" }}
+              />
+            ))}
+          </div>
+          <p>Total: {calculateHand(playerCards)}</p>
+        </div>
       </div>
-      <div>
-        <strong>Dealer's Hand ({isPlayerTurn ? '?' : dealerScore}): </strong>
-        {dealerHand.map((card, i) => (
-          <span key={i}>
-            {isPlayerTurn && i === 0 ? '?? ' : `${card.value}${card.suit} `}
-          </span>
-        ))}
-      </div>
-      <p>{message}</p>
-      <div>
-        {!gameOver && (
-          <>
-            <button onClick={hit} disabled={!isPlayerTurn}>Hit</button>
-            <button onClick={stand} disabled={!isPlayerTurn}>Stand</button>
-          </>
-        )}
-        {gameOver && <button onClick={startGame}>Restart</button>}
-      </div>
+
+      {!gameOver && playerCards.length > 0 && (
+        <div style={{ marginTop: "20px" }}>
+          <button onClick={hit} style={{ marginRight: "10px" }}>
+            Hit
+          </button>
+          <button onClick={stand}>Stand</button>
+        </div>
+      )}
+
+      {message && <h3 style={{ marginTop: "20px" }}>{message}</h3>}
     </div>
   );
 }
 
+export default Blackjack;
