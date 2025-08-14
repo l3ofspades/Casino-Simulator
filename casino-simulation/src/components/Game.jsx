@@ -3,6 +3,7 @@ import GameSelector from './GameSelector';
 import ChipWallet from './ChipWallet';
 import Blackjack from './Blackjack';
 import Poker from './Poker';
+import Roulette from './Roulette';
 
 function Game() {
   const [selectedGame, setSelectedGame] = useState(null);
@@ -16,7 +17,7 @@ function Game() {
 
 
       {selectedGame === 'blackjack' && <Blackjack />}
-      {selectedGame === 'roulette' && <div>Roulette Game will go here</div>}
+      {selectedGame === 'roulette' && <Roulette />}
      {selectedGame === 'poker' && <Poker />}
 
 
