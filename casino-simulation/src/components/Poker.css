@@ -1,0 +1,19 @@
+.cards-section {
+  margin-top: 20px;
+}
+
+.cards-container {
+  display: flex;
+  flex-wrap: wrap; /* Wraps cards so they don’t overflow */
+  gap: 5px;
+  padding: 10px;
+  border: 2px solid #0f0; /* Green border */
+  border-radius: 8px;
+  max-width: 300px; /* Keep inside box */
+  background-color: #000;
+  overflow-x: auto; /* Horizontal scroll if too many */
+}
+
+.cards-container img {
+  width: 80px;
+}
