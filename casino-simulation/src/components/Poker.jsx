@@ -1,127 +1,183 @@
 import { useState, useEffect } from "react";
-import "./Poker.css"; // Assuming you have a CSS file for styling
+import "./Poker.css";
+import { Hand } from "pokersolver"; // Make sure pokersolver is installed
 
-export default function Poker() {
+function Poker() {
   const [deckId, setDeckId] = useState(null);
   const [playerCards, setPlayerCards] = useState([]);
   const [dealerCards, setDealerCards] = useState([]);
   const [communityCards, setCommunityCards] = useState([]);
+  const [message, setMessage] = useState("");
   const [chips, setChips] = useState(1000);
-  const [bet, setBet] = useState(0);
+  const [currentBet, setCurrentBet] = useState(0);
+  const [roundStage, setRoundStage] = useState("pre-flop"); // pre-flop, flop, turn, river, showdown
   const [roundOver, setRoundOver] = useState(false);
 
-  // Fetch a fresh deck
+  // Create a new deck on mount
   useEffect(() => {
-    fetch("https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1")
-      .then((res) => res.json())
-      .then((data) => setDeckId(data.deck_id));
-  }, []);
-
-  const startHand = async () => {
-    if (!deckId || bet <= 0) return;
-    setRoundOver(false);
-
-    const draw = async (count) => {
+    const getDeck = async () => {
       const res = await fetch(
-        `https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=${count}`
+        "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1"
       );
       const data = await res.json();
-      return data.cards;
+      setDeckId(data.deck_id);
     };
+    getDeck();
+  }, []);
 
-    const player = await draw(2);
-    const dealer = await draw(2);
-    const community = await draw(5);
-
-    setPlayerCards(player);
-    setDealerCards(dealer);
-    setCommunityCards(community);
-    setChips((prev) => prev - bet);
+  // Place bet
+  const placeBet = (amount) => {
+    if (amount > chips) {
+      alert("Not enough chips!");
+      return;
+    }
+    setCurrentBet(amount);
+    setChips(chips - amount);
   };
 
-  const revealDealer = () => {
-    setRoundOver(true);
-    setChips((prev) => prev + bet * 2); // placeholder win logic
+  // Start a new hand
+  const startHand = async () => {
+    if (!deckId) return;
+
+    const drawRes = await fetch(
+      `https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=4`
+    );
+    const data = await drawRes.json();
+
+    setPlayerCards([data.cards[0], data.cards[2]]);
+    setDealerCards([data.cards[1], data.cards[3]]);
+    setCommunityCards([]);
+    setMessage("");
+    setRoundStage("pre-flop");
+    setRoundOver(false);
+    setCurrentBet(0);
+  };
+
+  // Deal next stage
+  const dealNext = async () => {
+    if (!deckId) return;
+
+    if (roundStage === "pre-flop") {
+      const res = await fetch(
+        `https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=3`
+      );
+      const data = await res.json();
+      setCommunityCards(data.cards);
+      setRoundStage("flop");
+    } else if (roundStage === "flop") {
+      const res = await fetch(
+        `https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`
+      );
+      const data = await res.json();
+      setCommunityCards([...communityCards, data.cards[0]]);
+      setRoundStage("turn");
+    } else if (roundStage === "turn") {
+      const res = await fetch(
+        `https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`
+      );
+      const data = await res.json();
+      setCommunityCards([...communityCards, data.cards[0]]);
+      setRoundStage("river");
+    } else if (roundStage === "river") {
+      // Showdown
+      setRoundOver(true);
+      setRoundStage("showdown");
+
+      // Compute winner using pokersolver
+      try {
+        const playerHand = Hand.solve([...playerCards, ...communityCards].map(c => c.code));
+        const dealerHand = Hand.solve([...dealerCards, ...communityCards].map(c => c.code));
+        const winner = Hand.winners([playerHand, dealerHand]);
+
+        if (winner.includes(playerHand)) {
+          setMessage("You win!");
+          setChips(chips + currentBet * 2);
+        } else if (winner.includes(dealerHand)) {
+          setMessage("Dealer wins!");
+        } else {
+          setMessage("Push! It's a tie.");
+          setChips(chips + currentBet);
+        }
+      } catch (err) {
+        setMessage("Error evaluating hands.");
+      }
+    }
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Poker</h2>
-      <div style={{ marginBottom: "10px" }}>
-        <span style={{ fontWeight: "bold" }}>Chips:</span> {chips}
-      </div>
-      <div style={{ marginBottom: "10px" }}>
-        <input
-          type="number"
-          min="0"
-          max={chips}
-          value={bet}
-          onChange={(e) => setBet(parseInt(e.target.value) || 0)}
-        />
-        <button onClick={startHand} style={{ marginLeft: "10px" }}>
-          Deal
-        </button>
-      </div>
+    <div className="game-container">
+      <h2>Texas Hold'em</h2>
+      <div style={{ marginBottom: "10px" }}>💰 Chips: {chips}</div>
 
-      {/* Dealer */}
-      <div style={{ border: "1px solid black", padding: "10px", marginBottom: "10px" }}>
-        <h3>Dealer's Cards</h3>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+{roundStage !== "showdown" && playerCards.length > 0 && (
+  <div style={{ marginBottom: "10px" }}>
+    <input
+      type="number"
+      placeholder="Enter bet"
+      value={currentBet}
+      onChange={(e) => setCurrentBet(Number(e.target.value))}
+    />
+    <button onClick={() => placeBet(currentBet)} style={{ marginLeft: "10px" }}>
+      Place Bet
+    </button>
+    <button 
+      onClick={dealNext}
+      style={{ marginLeft: "10px" }}
+      disabled={currentBet === 0}
+    >
+      {roundStage === "pre-flop" ? "Deal Flop" : roundStage === "flop" ? "Deal Turn" : roundStage === "turn" ? "Deal River" : "Showdown" }
+    </button>
+  </div>
+)}
+      
+
+      {playerCards.length === 0 && <button onClick={startHand}>Start Hand</button>}
+
+      <div className="cards-section">
+        <h3>Opponent's Cards</h3>
+        <div className="cards-container">
           {dealerCards.map((card, i) => (
             <img
               key={i}
-              src={
-                roundOver
-                  ? card.image
-                  : i === 0
-                  ? card.image
-                  : "https://deckofcardsapi.com/static/img/back.png"
-              }
+              src={roundOver ? card.image : "https://deckofcardsapi.com/static/img/back.png"}
               alt="card"
-              style={{ width: "80px", height: "120px" }}
+              style={{ width: "80px", height: "120px", marginRight: "5px" }}
             />
           ))}
         </div>
       </div>
 
-      {/* Player */}
-      <div style={{ border: "1px solid black", padding: "10px", marginBottom: "10px" }}>
-        <h3>Player's Cards</h3>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+      <div className="cards-section">
+        <h3>Your Cards</h3>
+        <div className="cards-container">
           {playerCards.map((card, i) => (
             <img
               key={i}
               src={card.image}
               alt="card"
-              style={{ width: "80px", height: "120px" }}
+              style={{ width: "80px", height: "120px", marginRight: "5px" }}
             />
           ))}
         </div>
       </div>
 
-      {/* Community Cards */}
-      <div style={{ border: "1px solid black", padding: "10px" }}>
+      <div className="cards-section">
         <h3>Community Cards</h3>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+        <div className="cards-container">
           {communityCards.map((card, i) => (
             <img
               key={i}
               src={card.image}
               alt="card"
-              style={{ width: "80px", height: "120px" }}
+              style={{ width: "80px", height: "120px", marginRight: "5px" }}
             />
           ))}
         </div>
       </div>
 
-      {!roundOver && dealerCards.length > 0 && (
-        <button
-          onClick={revealDealer}
-          style={{ marginTop: "10px", padding: "10px" }}
-        >
-          Reveal Dealer Cards
-        </button>
-      )}
+      {message && <h3 style={{ marginTop: "20px" }}>{message}</h3>}
     </div>
   );
 }
+
+export default Poker;

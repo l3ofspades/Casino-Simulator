@@ -1,106 +1,27 @@
-CSS
-
 /* Design.css */
 
-/* Full page background */
+/* Full page background and centering */
 body {
-  background-color: #000; /* pure black */
+  background-color: #000;
   margin: 0;
-  font-family: 'Courier New', Courier, monospace; /* hacker vibe font */
+  font-family: 'Courier New', Courier, monospace;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh; /* full viewport height */
+  min-height: 100vh;
 }
 
-/* Container to center and style content */
-div {
-  background: #111; /* very dark gray */
+/* Container for all game components */
+.game-container {
+  background: #111;
   padding: 40px 60px;
   border-radius: 15px;
   box-shadow:
     0 0 10px #00ff00,
     0 0 30px #00ff00,
     0 0 50px #00ff00,
-    0 0 70px #00ff00; /* green glowing shadows */
+    0 0 70px #00ff00;
   text-align: center;
-  max-width: 500px;
-}
-
-/* Heading with neon glow */
-h1 {
-  color: #00ff00;
-  font-size: 3rem;
-  margin-bottom: 0.5em;
-  text-shadow:
-    0 0 5px #00ff00,
-    0 0 10px #00ff00,
-    0 0 20px #00ff00,
-    0 0 40px #00ff00;
-}
-
-/* Paragraph with softer glow */
-p {
-  color: #a0f0a0;
-  font-size: 1.2rem;
-  line-height: 1.6;
-  text-shadow:
-    0 0 3px #a0f0a0,
-    0 0 6px #a0f0a0;
-}
-
-/* Button example */
-button {
-  margin-top: 20px;
-  padding: 10px 25px;
-  font-size: 1rem;
-  color: #000;
-  background: #00ff00;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow:
-    0 0 10px #00ff00,
-    0 0 20px #00ff00;
-  transition: background 0.3s ease;
-}
-
-button:hover {
-  background: #0f0;
-  box-shadow:
-    0 0 20px #0f0,
-    0 0 40px #0f0;
-}
-.chip-wallet {
-  margin-bottom: 20px;
-  font-weight: bold;
-  font-size: 1.3rem;
-  color: #00ff00; 
-  text-shadow:
-    0 0 5px #00ff00,
-    0 0 10px #00ff00,
-    0 0 20px #00ff00,
-    0 0 30px #00ff00;
-}
-button {
-  margin: 10px 10px 0 0;
-  padding: 10px 25px;
-  font-size: 1rem;
-  font-weight: bold;
-  color: #000;
-  background: #00ff00;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow:
-    0 0 10px #00ff00,
-    0 0 20px #00ff00;
-  transition: background 0.3s ease;
-}
-
-button:hover {
-  background: #0f0;
-  box-shadow:
-    0 0 20px #0f0,
-    0 0 40px #0f0;
+  max-width: 700px; /* Bigger so cards fit nicely */
+  width: 90%;
 }
