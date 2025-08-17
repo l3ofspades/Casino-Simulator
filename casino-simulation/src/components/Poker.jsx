@@ -93,7 +93,7 @@ function Poker() {
           setMessage("You win!");
           setChips(chips + currentBet * 2);
         } else if (winner.includes(dealerHand)) {
-          setMessage("Dealer wins!");
+          setMessage("Opponent Wins!");
         } else {
           setMessage("Push! It's a tie.");
           setChips(chips + currentBet);
@@ -125,7 +125,7 @@ function Poker() {
       style={{ marginLeft: "10px" }}
       disabled={currentBet === 0}
     >
-      {roundStage === "pre-flop" ? "Deal Flop" : roundStage === "flop" ? "Deal Turn" : roundStage === "turn" ? "Deal River" : "Showdown" }
+      {roundStage === "Pre-flop" ? "Deal Flop" : roundStage === "flop" ? "Deal Turn" : roundStage === "turn" ? "Deal River" : "Showdown" }
     </button>
   </div>
 )}

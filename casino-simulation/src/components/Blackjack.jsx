@@ -47,28 +47,23 @@ export default function Blackjack() {
 
   const stand = () => {
     setRevealDealer(true);
-    // Dealer draws until 17+
-    let dealerValue = getHandValue(dealerCards);
-    const drawDealerCard = () => {
-      if (dealerValue < 17) {
-        fetch(`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`)
-          .then((res) => res.json())
-          .then((data) => {
-            setDealerCards((prev) => {
-              const newHand = [...prev, data.cards[0]];
-              dealerValue = getHandValue(newHand);
-              if (dealerValue < 17) {
-                drawDealerCard();
-              } else {
-                endGame(newHand);
-              }
-              return newHand;
-            });
-          });
-      } else {
-        endGame(dealerCards);
-      }
-    };
+
+  let dealerHand = [...dealerCards];
+
+  const drawDealerCard =() => {
+    const dealerValue = getHandValue(dealerHand);
+    if (dealerValue < 17) {
+      fetch(`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`)
+        .then((res) => res.json())
+        .then((data) => {
+          dealerHand.push(data.cards[0]);
+          drawDealerCard();
+        });
+    } else {
+      endGame(dealerHand);
+    }
+  };
+
     drawDealerCard();
   };
 
@@ -92,22 +87,26 @@ export default function Blackjack() {
     return value;
   };
 
-  const endGame = (finalDealerCards) => {
+  const endGame = (dealerFinalCards) => {
     const playerValue = getHandValue(playerCards);
-    const dealerValue = getHandValue(finalDealerCards);
+    const dealerValue = getHandValue(dealerFinalCards);
 
     if (playerValue > 21) {
       setMessage("You busted! Dealer wins.");
-      setChips(chips - bet);
-    } else if (dealerValue > 21 || playerValue > dealerValue) {
+      setChips((prev) => prev - bet);
+    } else if (dealerValue > 21) {
+      setMessage("Dealer busted! You win.");
+      setChips((prev) => prev + bet);
+    } else if (playerValue > dealerValue) {
       setMessage("You win!");
-      setChips(chips + bet);
+      setChips((prev) => prev + bet);
     } else if (dealerValue > playerValue) {
       setMessage("Dealer wins.");
-      setChips(chips - bet);
+      setChips((prev) => prev - bet);
     } else {
-      setMessage("Push!");
+      setMessage("Push");
     }
+
     setGameOver(true);
   };
 
@@ -168,7 +167,8 @@ export default function Blackjack() {
             </div>
           )}
 
-          {gameOver && <h3>{message}</h3>}
+          {gameOver && <h3 style={{ color: "lime" }}>{message}</h3>}
+
         </div>
       )}
     </div>
