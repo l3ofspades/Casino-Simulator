@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import './Roulette.css';
-
 const numbers = [
   { number: 0, color: 'green' }, { number: 32, color: 'red' }, { number: 15, color: 'black' },
   { number: 19, color: 'red' }, { number: 4, color: 'black' }, { number: 21, color: 'red' },
@@ -44,8 +43,9 @@ export default function Roulette() {
   return (
     <div className="roulette-container">
       <h2>Roulette</h2>
-      <div className="roulette-pointer"></div>
-      <div className="roulette-wheel" style={{ transform: `rotate(${angle}deg)` }}>
+ 
+
+      <div className="roulette-wheel" style={{ transform: `rotate(${angle}deg)`, transition: 'transform 5s cubic-bezier(0.33, 1, 0.68, 1)' }}>
         {numbers.map((num, index) => (
           <div
             key={index}

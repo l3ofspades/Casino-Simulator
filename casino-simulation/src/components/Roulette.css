@@ -1,19 +1,18 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  color: #ee0c0c;
+}
+
+
+
+
 .roulette-container {
   text-align: center;
   margin-top: 50px;
   position: relative;
 }
 
-.roulette-wheel {
-  position: relative;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  margin: 0 auto 20px;
-  border: 5px solid #444;
-  transition: transform 5s cubic-bezier(0.33, 1, 0.68, 1);
-  overflow: hidden;
-}
 
 .roulette-segment {
   position: absolute;
@@ -33,22 +32,10 @@
 }
 
 .roulette-segment.black {
-  background-color: #222;
+  background-color: #14eaf1;
 }
 
 .roulette-segment.green {
   background-color: #008000;
 }
 
-.roulette-pointer {
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-left: 12px solid transparent;
-  border-right: 12px solid transparent;
-  border-bottom: 25px solid #00ff00;
-  transform: translateX(-50%);
-  z-index: 10;
-}
