@@ -18,9 +18,10 @@ function Game() {
       <GameSelector onGameSelect={setSelectedGame} />
 
 
-      {selectedGame === 'blackjack' && <Blackjack />}
-      {selectedGame === 'roulette' && <Roulette />}
-     {selectedGame === 'poker' && <Poker />}
+      {selectedGame === 'blackjack' && <Blackjack chips={chips} setChips={setChips} />}
+      {selectedGame === 'roulette' && <Roulette chips={chips} setChips={setChips} />}
+      {selectedGame === 'poker' && <Poker chips={chips} setChips={setChips} />}
+
 
 
  </div>

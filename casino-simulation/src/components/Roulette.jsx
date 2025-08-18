@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Roulette.css';
+
 const numbers = [
   { number: 0, color: 'green' }, { number: 32, color: 'red' }, { number: 15, color: 'black' },
   { number: 19, color: 'red' }, { number: 4, color: 'black' }, { number: 21, color: 'red' },
@@ -16,15 +17,26 @@ const numbers = [
   { number: 26, color: 'black' },
 ];
 
-export default function Roulette() {
+export default function Roulette({ chips, setChips }) {
   const [angle, setAngle] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
+  const [bet, setBet] = useState('');
+  const [betType, setBetType] = useState('color'); // color, number, evenodd, lowhigh
+  const [choice, setChoice] = useState('red');
+  const [message, setMessage] = useState('');
 
   const spinWheel = () => {
-    if (spinning) return;
+    const betAmount = parseInt(bet);
+    if (!betAmount || betAmount <= 0 || betAmount > chips) {
+      setMessage('Please place a valid bet.');
+      return;
+    }
 
     const randomIndex = Math.floor(Math.random() * numbers.length);
+    const landedNumber = numbers[randomIndex];
+
+    // Spin animation
     const segmentAngle = 360 / numbers.length;
     const spins = 5;
     const newAngle = 360 * spins + randomIndex * segmentAngle + segmentAngle / 2;
@@ -33,45 +45,90 @@ export default function Roulette() {
     setAngle(newAngle);
 
     setTimeout(() => {
-      setResult(numbers[randomIndex]);
+      setResult(landedNumber);
+
+      let winnings = 0
+      switch (betType) {
+        case 'color':
+          if (choice === landedNumber.color) winnings = choice === 'green' ? betAmount * 14 : betAmount * 2;
+          break;
+          case 'number':
+            if (parseInt(choice) === landedNumber.number) winnings = betAmount * 36;
+            break;
+            case 'evenodd':
+              if(choice === 'even' && landedNumber.number !== 0 && landedNumber.number % 2 === 0) winnings = betAmount * 2;
+              if(choice=== 'odd' && landedNumber.number % 2 === 1) winnings = betAmount * 2;
+              break;
+              case 'lowhigh':
+                if (choice === 'low' && landedNumber.number >= 1 && landedNumber.number <= 18) winnings = betAmount * 3;
+                if  (choice === 'high' && landedNumber.number >= 19 && landedNumber.number <= 36) winnings = betAmount * 3;
+            break;      
+      }
+
+      if (winnings > 0) {
+        setChips(chips + winnings);
+        setMessage(`You WON! Landed on ${landedNumber.color} (${landedNumber.number}). You earned ${winnings} chips.`);
+      } else {
+        setChips(chips - betAmount);
+        setMessage(`You lost. Landed on ${landedNumber.color} (${landedNumber.number}).`);
+      }
+
       setSpinning(false);
     }, 5000);
   };
 
-  const segmentAngle = 360 / numbers.length;
+  
+  let choiceOptions = [];
+  if (betType === 'color') choiceOptions = ['red', 'black', 'green'];
+  if (betType === 'number') choiceOptions = numbers.map(n => n.number.toString());
+  if (betType === 'evenodd') choiceOptions = ['even', 'odd'];
+  if (betType === 'lowhigh') choiceOptions = ['low', 'high'];
 
   return (
     <div className="roulette-container">
       <h2>Roulette</h2>
- 
 
-      <div className="roulette-wheel" style={{ transform: `rotate(${angle}deg)`, transition: 'transform 5s cubic-bezier(0.33, 1, 0.68, 1)' }}>
-        {numbers.map((num, index) => (
-          <div
-            key={index}
-            className={`roulette-segment ${num.color}`}
-            style={{
-              transform: `rotate(${index * segmentAngle}deg) skewY(-60deg)`,
-            }}
-          >
-            <div
-              style={{
-                transform: `skewY(60deg) rotate(${segmentAngle / 2}deg) translateY(-50%)`,
-                color: 'white',
-                fontWeight: 'bold',
-                fontSize: '12px',
-              }}
-            >
-              {num.number}
-            </div>
-          </div>
-        ))}
+      <div
+        className="roulette-wheel"
+        style={{
+          transform: `rotate(${angle}deg)`,
+          transition: 'transform 5s cubic-bezier(0.33, 1, 0.68, 1)',
+          width: '300px',
+          height: '300px',
+          margin: '0 auto',
+        }}
+      >
+        <img src="/Wheel.png" alt="Roulette Wheel" style={{ width: '100%', height: '100%' }} />
       </div>
 
-      <button onClick={spinWheel} disabled={spinning} style={{ marginTop: '20px' }}>
+      <div style={{ marginTop: '20px' }}>
+        <input
+          type="number"
+          placeholder="Enter bet"
+          value={bet}
+          onChange={(e) => setBet(e.target.value)}
+          disabled={spinning}
+        />
+
+        <select value={betType} onChange={(e) => setBetType(e.target.value)} disabled={spinning}>
+          <option value="color">Color</option>
+          <option value="number">Number</option>
+          <option value="evenodd">Even/Odd</option>
+          <option value="lowhigh">Low/High</option>
+        </select>
+
+        <select value={choice} onChange={(e) => setChoice(e.target.value)} disabled={spinning}>
+          {choiceOptions.map((opt, idx) => (
+            <option key={idx} value={opt}>{opt}</option>
+          ))}
+        </select>
+      </div>
+
+      <button onClick={spinWheel} disabled={spinning} style={{ marginTop: '10px' }}>
         {spinning ? 'Spinning...' : 'Spin the Wheel'}
       </button>
 
+      {message && <p style={{ marginTop: '15px', fontWeight: 'bold' }}>{message}</p>}
       {result && (
         <h3 style={{ marginTop: '20px', color: result.color }}>
           Result: {result.number} ({result.color})
