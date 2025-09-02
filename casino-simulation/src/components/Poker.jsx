@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import "./Poker.css";
 import { Hand } from "pokersolver"; // Make sure pokersolver is installed
 
 function Poker() {

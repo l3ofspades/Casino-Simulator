@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 
-export default function Blackjack() {
+export default function Blackjack({ chips, setChips }) {
   const [deckId, setDeckId] = useState(null);
   const [playerCards, setPlayerCards] = useState([]);
   const [dealerCards, setDealerCards] = useState([]);
   const [gameOver, setGameOver] = useState(false);
   const [message, setMessage] = useState("");
-  const [chips, setChips] = useState(1000);
   const [bet, setBet] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [revealDealer, setRevealDealer] = useState(false);

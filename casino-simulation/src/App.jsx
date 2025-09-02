@@ -1,12 +1,11 @@
 // App.jsx
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import Home from "./Home";
+import Home from "./pages/Home";
 import Blackjack from "./components/Blackjack";
 import Poker from "./components/Poker";
 import Roulette from "./components/Roulette";
-import ChipWallet from "../components/ChipWallet";
-
+import ChipWallet from "./components/ChipWallet";
 import './styles/Design.css';
 
 function App() {

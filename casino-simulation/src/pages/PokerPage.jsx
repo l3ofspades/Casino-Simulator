@@ -1,5 +1,5 @@
 import React from "react";
-import Poker from "./components/Poker";
+import Poker from "../components/Poker";
 import ChipWallet from "../components/ChipWallet";
 
 export default function PokerPage({ chips, setChips }) {

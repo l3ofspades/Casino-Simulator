@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import GameSelector from './GameSelector';
 import ChipWallet from './ChipWallet';
 import Blackjack from './Blackjack';
 import Poker from './Poker';
@@ -15,7 +14,6 @@ function Game() {
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
       <h1>Casino</h1>
       <ChipWallet chips={chips} />
-      <GameSelector onGameSelect={setSelectedGame} />
 
 
       {selectedGame === 'blackjack' && <Blackjack chips={chips} setChips={setChips} />}

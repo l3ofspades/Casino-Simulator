@@ -1,5 +1,5 @@
 import React from 'react';
-import Roulette from './components/Roulette';
+import Roulette from '../components/Roulette';
 import ChipWallet from '../components/ChipWallet';
 
 export default function RoulettePage({ chips, setChips }) {
