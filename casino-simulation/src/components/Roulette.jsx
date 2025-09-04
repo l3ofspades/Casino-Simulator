@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import '../styles/Roulette.css';
 
 const numbers = [
   { number: 0, color: 'green' }, { number: 32, color: 'red' }, { number: 15, color: 'black' },

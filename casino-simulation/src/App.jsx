@@ -6,7 +6,7 @@ import Blackjack from "./components/Blackjack";
 import Poker from "./components/Poker";
 import Roulette from "./components/Roulette";
 import ChipWallet from "./components/ChipWallet";
-import './styles/Design.css';
+
 
 function App() {
   const [chips, setChips] = React.useState(1000);

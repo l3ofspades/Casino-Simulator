@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { Hand } from "pokersolver"; // Make sure pokersolver is installed
+import { Hand } from "pokersolver"; 
+import '../styles/Poker.css';
+
 
 function Poker() {
   const [deckId, setDeckId] = useState(null);

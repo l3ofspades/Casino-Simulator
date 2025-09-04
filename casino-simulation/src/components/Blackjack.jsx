@@ -47,21 +47,22 @@ export default function Blackjack({ chips, setChips }) {
   const stand = () => {
     setRevealDealer(true);
 
-  let dealerHand = [...dealerCards];
+    let dealerHand = [...dealerCards];
 
-  const drawDealerCard =() => {
-    const dealerValue = getHandValue(dealerHand);
-    if (dealerValue < 17) {
-      fetch(`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`)
-        .then((res) => res.json())
-        .then((data) => {
-          dealerHand.push(data.cards[0]);
-          drawDealerCard();
-        });
-    } else {
-      endGame(dealerHand);
-    }
-  };
+    const drawDealerCard = () => {
+      const dealerValue = getHandValue(dealerHand);
+      if (dealerValue < 17) {
+        fetch(`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`)
+          .then((res) => res.json())
+          .then((data) => {
+            dealerHand.push(data.cards[0]);
+            setDealerCards([...dealerHand]); // ✅ update dealer state
+            drawDealerCard();
+          });
+      } else {
+        endGame(dealerHand);
+      }
+    };
 
     drawDealerCard();
   };
@@ -110,9 +111,10 @@ export default function Blackjack({ chips, setChips }) {
   };
 
   return (
-    <div>
+    <div className="game-container">
       <h1>Blackjack</h1>
       <p>Chips: {chips}</p>
+
       {!gameStarted && (
         <div>
           <input
@@ -124,10 +126,11 @@ export default function Blackjack({ chips, setChips }) {
           <button onClick={startGame}>Deal</button>
         </div>
       )}
+
       {gameStarted && (
         <div>
           <h2>Dealer's Cards</h2>
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
             {dealerCards.map((card, index) =>
               index === 1 && !revealDealer ? (
                 <img
@@ -148,7 +151,7 @@ export default function Blackjack({ chips, setChips }) {
           </div>
 
           <h2>Player's Cards</h2>
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
             {playerCards.map((card, index) => (
               <img
                 key={index}
@@ -160,14 +163,13 @@ export default function Blackjack({ chips, setChips }) {
           </div>
 
           {!gameOver && (
-            <div>
+            <div style={{ marginTop: "10px" }}>
               <button onClick={hit}>Hit</button>
               <button onClick={stand}>Stand</button>
             </div>
           )}
 
           {gameOver && <h3 style={{ color: "lime" }}>{message}</h3>}
-
         </div>
       )}
     </div>
