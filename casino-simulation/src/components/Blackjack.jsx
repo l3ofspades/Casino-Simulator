@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import '../styles/Blackjack.css';
 
 export default function Blackjack({ chips, setChips }) {
   const [deckId, setDeckId] = useState(null);

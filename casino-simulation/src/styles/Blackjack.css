@@ -1,0 +1,59 @@
+.cards-section {
+  margin-top: 20px;
+}
+
+/* Card container */
+.cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 10px;
+  border: 2px solid #0f0;
+  border-radius: 8px;
+  background-color: #000;
+  overflow-x: auto;
+  justify-content: center; /* Keep cards centered */
+}
+
+/* Individual card size */
+.cards-container img {
+  width: 80px;
+  height: 120px;
+}
+
+/* Buttons */
+button {
+  margin: 10px 10px 0 0;
+  padding: 10px 25px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #000;
+  background: #00ff00;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow:
+    0 0 10px #00ff00,
+    0 0 20px #00ff00;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  background: #0f0;
+  box-shadow:
+    0 0 20px #0f0,
+    0 0 40px #0f0;
+}
+
+/* Chips display */
+.chip-wallet {
+  margin-bottom: 20px;
+  font-weight: bold;
+  font-size: 1.3rem;
+  color: #00ff00; 
+  text-shadow:
+    0 0 5px #00ff00,
+    0 0 10px #00ff00,
+    0 0 20px #00ff00,
+    0 0 30px #00ff00;
+}

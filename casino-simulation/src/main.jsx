@@ -5,7 +5,7 @@ import Home from './pages/Home.jsx';
 import BlackjackPage from './pages/BlackjackPage.jsx';
 import PokerPage from './pages/PokerPage.jsx';
 import RoulettePage from './pages/RoulettePage.jsx';
-import './styles/Design.css';
+
 
 function App() {
   const [chips, setChips] = useState(1000);
