@@ -5,6 +5,7 @@ import Home from './pages/Home.jsx';
 import BlackjackPage from './pages/BlackjackPage.jsx';
 import PokerPage from './pages/PokerPage.jsx';
 import RoulettePage from './pages/RoulettePage.jsx';
+import "./casino.css";
 
 
 function App() {

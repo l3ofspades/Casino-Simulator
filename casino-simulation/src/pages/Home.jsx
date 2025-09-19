@@ -1,20 +1,22 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-
-export default function Home() {
-    return (
-        <div>
-            <h2 className="home-title">Welcome to the Casino!</h2>
-            <p className="home-subtitle"> Select a game from below to start playing!!🎲</p>
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
 
-            <div className="game-links">
-                <Link className="game-button" to="/blackjack">Blackjack</Link>
-                <Link className="game-button" to="/poker">Poker</Link>
-                <Link className="game-button" to="/roulette">Roulette</Link>
-            </div>
-            </div>
-    );
+export default function HomePage() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="home-container">
+      <h1>🎰 Casino Simulator 🎲</h1>
+      <p>Welcome! Choose your game below:</p>
+
+      <div className="home-buttons">
+        <button onClick={() => navigate("/blackjack")}>♠ Blackjack</button>
+        <button onClick={() => navigate("/poker")}>♥ Poker</button>
+        <button onClick={() => navigate("/roulette")}>♦ Roulette</button>
+      </div>
+    </div>
+  );
 }
 
     
