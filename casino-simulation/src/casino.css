@@ -174,3 +174,18 @@ input[type="number"] {
   margin-top: 15px;
   font-weight: bold;
 }
+
+.back-button {
+  display: inline-block;
+  background: #ffd700;
+  color: #000;
+  border-radius: 8px;
+  padding: 8px 16px;
+  margin-bottom: 20px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+.back-button:hover {
+  background: #e6c200;
+}

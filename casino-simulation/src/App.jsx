@@ -1,33 +1,28 @@
-// App.jsx
-import React from "react";
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import Home from "./pages/Home";
-import Blackjack from "./components/Blackjack";
-import Poker from "./components/Poker";
-import Roulette from "./components/Roulette";
-import ChipWallet from "./components/ChipWallet";
+import Home from './pages/Home.jsx';
+import BlackjackPage from './pages/BlackjackPage.jsx';
+import PokerPage from './pages/PokerPage.jsx';
+import RoulettePage from './pages/RoulettePage.jsx';
 
-
-function App() {
-  const [chips, setChips] = React.useState(1000);
+export default function App() {
+  const [chips, setChips] = useState(1000);
 
   return (
     <Router>
-      <div className="game-container">
-        <ChipWallet chips={chips} />
+      <nav className="navbar">
+        <Link to="/" className="nav-link">Home</Link>
+        <Link to="/blackjack" className="nav-link">Blackjack</Link>
+        <Link to="/poker" className="nav-link">Poker</Link>
+        <Link to="/roulette" className="nav-link">Roulette</Link>
+        </nav>
 
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/blackjack" element={<Blackjack chips={chips} setChips={setChips} />} />
-          <Route path="/poker" element={<Poker chips={chips} setChips={setChips} />} />
-          <Route path="/roulette" element={<Roulette chips={chips} setChips={setChips} />} />
-          <Route path="*" element={<Home />} /> {/* Redirect any undefined route to Home */}
+          <Route path="/blackjack" element={<BlackjackPage chips={chips} setChips={setChips} />} />
+          <Route path="/poker" element={<PokerPage chips={chips} setChips={setChips} />} />
+          <Route path="/roulette" element={<RoulettePage chips={chips} setChips={setChips} />} />
         </Routes>
-      </div>
     </Router>
   );
 }
-
-export default App;
-
-

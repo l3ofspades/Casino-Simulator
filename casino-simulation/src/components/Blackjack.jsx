@@ -1,22 +1,28 @@
 import React, { useState, useEffect } from "react";
 
-
 export default function Blackjack({ chips, setChips }) {
-  const [deckId, setDeckId] = useState(null);
+  const [deck, setDeck] = useState([]); // store all cards here
   const [playerCards, setPlayerCards] = useState([]);
   const [dealerCards, setDealerCards] = useState([]);
-  const [gameOver, setGameOver] = useState(false);
   const [message, setMessage] = useState("");
   const [bet, setBet] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [revealDealer, setRevealDealer] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
 
-  // Create new deck on mount
+  // Create and shuffle deck on mount
   useEffect(() => {
-    fetch("https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=6")
+    fetch("https://deckofcardsapi.com/api/deck/new/draw/?count=312") // 6 decks * 52 cards
       .then((res) => res.json())
-      .then((data) => setDeckId(data.deck_id));
+      .then((data) => setDeck(data.cards));
   }, []);
+
+  const drawCard = () => {
+    // remove top card from deck and return it
+    const card = deck[0];
+    setDeck((prev) => prev.slice(1));
+    return card;
+  };
 
   const startGame = () => {
     if (bet <= 0 || bet > chips) {
@@ -29,61 +35,41 @@ export default function Blackjack({ chips, setChips }) {
     setGameOver(false);
     setMessage("");
 
-    fetch(`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=4`)
-      .then((res) => res.json())
-      .then((data) => {
-        setPlayerCards([data.cards[0], data.cards[2]]);
-        setDealerCards([data.cards[1], data.cards[3]]);
-      });
+    const player = [drawCard(), drawCard()];
+    const dealer = [drawCard(), drawCard()];
+    setPlayerCards(player);
+    setDealerCards(dealer);
   };
 
   const hit = () => {
-    fetch(`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`)
-      .then((res) => res.json())
-      .then((data) => {
-        setPlayerCards((prev) => [...prev, data.cards[0]]);
-      });
+    setPlayerCards((prev) => [...prev, drawCard()]);
   };
 
   const stand = () => {
     setRevealDealer(true);
 
     let dealerHand = [...dealerCards];
+    while (getHandValue(dealerHand) < 17) {
+      dealerHand.push(drawCard());
+    }
 
-    const drawDealerCard = () => {
-      const dealerValue = getHandValue(dealerHand);
-      if (dealerValue < 17) {
-        fetch(`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`)
-          .then((res) => res.json())
-          .then((data) => {
-            dealerHand.push(data.cards[0]);
-            setDealerCards([...dealerHand]); // ✅ update dealer state
-            drawDealerCard();
-          });
-      } else {
-        endGame(dealerHand);
-      }
-    };
-
-    drawDealerCard();
+    setDealerCards(dealerHand);
+    endGame(dealerHand);
   };
 
   const getHandValue = (cards) => {
     let value = 0;
     let aces = 0;
-    cards.forEach((card) => {
-      if (["KING", "QUEEN", "JACK"].includes(card.value)) {
-        value += 10;
-      } else if (card.value === "ACE") {
+    for (const card of cards) {
+      if (["KING", "QUEEN", "JACK"].includes(card.value)) value += 10;
+      else if (card.value === "ACE") {
         value += 11;
-        aces += 1;
-      } else {
-        value += parseInt(card.value);
-      }
-    });
+        aces++;
+      } else value += parseInt(card.value);
+    }
     while (value > 21 && aces > 0) {
       value -= 10;
-      aces -= 1;
+      aces--;
     }
     return value;
   };
@@ -94,84 +80,67 @@ export default function Blackjack({ chips, setChips }) {
 
     if (playerValue > 21) {
       setMessage("You busted! Dealer wins.");
-      setChips((prev) => prev - bet);
+      setChips((c) => c - bet);
     } else if (dealerValue > 21) {
-      setMessage("Dealer busted! You win.");
-      setChips((prev) => prev + bet);
+      setMessage("Dealer busted! You win!");
+      setChips((c) => c + bet);
     } else if (playerValue > dealerValue) {
       setMessage("You win!");
-      setChips((prev) => prev + bet);
+      setChips((c) => c + bet);
     } else if (dealerValue > playerValue) {
       setMessage("Dealer wins.");
-      setChips((prev) => prev - bet);
+      setChips((c) => c - bet);
     } else {
-      setMessage("Push");
+      setMessage("Push.");
     }
 
     setGameOver(true);
   };
 
   return (
-    <div className="game-container">
+    <div>
       <h1>Blackjack</h1>
       <p>Chips: {chips}</p>
-
-      {!gameStarted && (
+      {!gameStarted ? (
         <div>
           <input
             type="number"
-            placeholder="Enter bet"
             value={bet}
             onChange={(e) => setBet(Number(e.target.value))}
+            placeholder="Enter bet"
           />
           <button onClick={startGame}>Deal</button>
         </div>
-      )}
-
-      {gameStarted && (
-        <div>
-          <h2>Dealer's Cards</h2>
-          <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
-            {dealerCards.map((card, index) =>
-              index === 1 && !revealDealer ? (
-                <img
-                  key={index}
-                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Card_back_01.svg/200px-Card_back_01.svg.png"
-                  alt="Hidden card"
-                  style={{ width: "100px" }}
-                />
-              ) : (
-                <img
-                  key={index}
-                  src={card.image}
-                  alt={card.code}
-                  style={{ width: "100px" }}
-                />
-              )
-            )}
-          </div>
-
-          <h2>Player's Cards</h2>
-          <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
-            {playerCards.map((card, index) => (
+      ) : (
+        <>
+          <h2>Dealer's Hand</h2>
+          {dealerCards.map((card, i) =>
+            i === 1 && !revealDealer ? (
               <img
-                key={index}
-                src={card.image}
-                alt={card.code}
-                style={{ width: "100px" }}
+                key={i}
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Card_back_01.svg/200px-Card_back_01.svg.png"
+                alt="Hidden card"
+                width="100"
               />
-            ))}
-          </div>
-
-          {!gameOver && (
-            <div style={{ marginTop: "10px" }}>
-              <button onClick={hit}>Hit</button>
-              <button onClick={stand}>Stand</button>
-            </div>
+            ) : (
+              <img key={i} src={card.image} alt={card.code} width="100" />
+            )
           )}
 
-          {gameOver && <h3 style={{ color: "lime" }}>{message}</h3>}
-        </div>
+          <h2>Player's Hand</h2>
+          {playerCards.map((card, i) => (
+            <img key={i} src={card.image} alt={card.code} width="100" />
+          ))}
+
+          {!gameOver && (
+            <>
+              <button onClick={hit}>Hit</button>
+              <button onClick={stand}>Stand</button>
+            </>
+          )}
+
+          {gameOver && <h3>{message}</h3>}
+        </>
       )}
     </div>
   );
