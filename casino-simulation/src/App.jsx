@@ -9,14 +9,16 @@ import { getChips, updateChips } from './services/api.js';
 export default function App() {
   const [chips, setChips] = useState(1000);
 
-  useEffect(() => {
-  getChips().then((data) => setChips(data.chips));
-}, []);
-
 useEffect(() => {
-  updateChips(chips);
-}, [chips]);
-
+  (async () => {
+    try {
+      const data = await getChips();
+      setChips(data.chips);
+    } catch (err) {
+      console.error("Error fetching chips:", err);
+    }
+  })();
+}, []);
 
   return (
     <Router>
