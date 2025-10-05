@@ -4,9 +4,19 @@ import Home from './pages/Home.jsx';
 import BlackjackPage from './pages/BlackjackPage.jsx';
 import PokerPage from './pages/PokerPage.jsx';
 import RoulettePage from './pages/RoulettePage.jsx';
+import { getChips, updateChips } from './services/api.js';
 
 export default function App() {
   const [chips, setChips] = useState(1000);
+
+  useEffect(() => {
+  getChips().then((data) => setChips(data.chips));
+}, []);
+
+useEffect(() => {
+  updateChips(chips);
+}, [chips]);
+
 
   return (
     <Router>
