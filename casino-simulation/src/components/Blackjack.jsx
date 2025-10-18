@@ -78,22 +78,34 @@ export default function Blackjack({ chips, setChips }) {
     const playerValue = getHandValue(playerCards);
     const dealerValue = getHandValue(dealerFinalCards);
 
-    if (playerValue > 21) {
-      setMessage("You busted! Dealer wins.");
-      setChips((c) => c - bet);
-    } else if (dealerValue > 21) {
-      setMessage("Dealer busted! You win!");
-      setChips((c) => c + bet);
-    } else if (playerValue > dealerValue) {
-      setMessage("You win!");
-      setChips((c) => c + bet);
-    } else if (dealerValue > playerValue) {
-      setMessage("Dealer wins.");
-      setChips((c) => c - bet);
-    } else {
-      setMessage("Push.");
-    }
+    let result = "";
+    let netChange = 0;
 
+    if (playerValue > 21) {
+      result = "Bust! Dealer wins.";
+      netChange = -bet;
+      setMessage(result);
+      setChips((c_) => c_ - bet);
+    } else if (dealerValue > 21) {
+      result = "Dealer busts! You win!";
+      netChange = bet;
+      setMessage(result);
+      setChips((c_) => c_ + bet);
+    } else if (playerValue > dealerValue) {
+      result = "You win!";
+      netChange = bet;
+      setMessage(result);
+      setChips((c_) => c_ + bet);
+    } else if (dealerValue > playerValue) {
+      result = "Dealer wins.";
+      netChange = -bet;
+      setMessage(result);
+      setChips((c_) => c_ - bet);
+    } else {
+      result = "Push.";
+      netChange = 0;
+      setMessage(result);
+    }
     setGameOver(true);
   };
 
