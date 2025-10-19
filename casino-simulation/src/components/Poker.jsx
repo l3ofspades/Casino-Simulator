@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { Hand } from "pokersolver"; 
+import PlayAgain from './common/Playagian';
 
 
 
-function Poker() {
+function Poker({ chips, setChips, onExit }) {
   const [deckId, setDeckId] = useState(null);
   const [playerCards, setPlayerCards] = useState([]);
   const [dealerCards, setDealerCards] = useState([]);
   const [communityCards, setCommunityCards] = useState([]);
   const [message, setMessage] = useState("");
-  const [chips, setChips] = useState(1000);
   const [currentBet, setCurrentBet] = useState(0);
   const [roundStage, setRoundStage] = useState("pre-flop"); // pre-flop, flop, turn, river, showdown
   const [roundOver, setRoundOver] = useState(false);
@@ -90,6 +90,7 @@ function Poker() {
         const dealerHand = Hand.solve([...dealerCards, ...communityCards].map(c => c.code));
         const winner = Hand.winners([playerHand, dealerHand]);
 
+        // handle win/loss logic
         if (winner.includes(playerHand)) {
           setMessage("You win!");
           setChips(chips + currentBet * 2);
@@ -177,6 +178,9 @@ function Poker() {
       </div>
 
       {message && <h3 style={{ marginTop: "20px" }}>{message}</h3>}
+      {roundOver && (
+        <PlayAgain onPlayAgain={startHand} onExit={onExit} />
+      )}
     </div>
   );
 }
