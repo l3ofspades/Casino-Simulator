@@ -1,8 +1,12 @@
-export default function PlayAgain({ onPlayAgain, onExit }) {
-    return (
-        <div style={{ marginTop: '20px' }}>
-            <button onClick={onPlayAgain} style={{ marginRight: '10px' }}>Play Again</button>
-            <button onClick={onExit} style={{ marginLeft: '10px' }}>Exit to Game Select</button>
-        </div>
-    );
+import { useNavigate } from "react-router-dom";
+
+export default function PlayAgain({ onPlayAgain }) {
+  const navigate = useNavigate();
+
+  return (
+    <div style={{ marginTop: "20px" }}>
+      <button onClick={onPlayAgain}>Play Again</button>
+      <button onClick={() => navigate("/")}>🏠 Back to Casino</button>
+    </div>
+  );
 }

@@ -25,6 +25,25 @@ export default function Roulette({ chips, setChips }) {
   const [choice, setChoice] = useState('red');
   const [message, setMessage] = useState('');
 
+  const logGameResult = async (result, bet, netChange) => {
+    try {
+      await fetch('http://localhost:5000/api/history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          player: 'Jonathan',
+          game: 'Roulette',
+          bet,
+          result,
+          netChange,
+        }),
+      });
+    console.log(` Logged ${result} for Roulette: ${netChange}`);
+    } catch (error) {
+      console.error(' Failed to log roulette history:', error);
+    }
+  }; 
+
   // Reset choice when betType changes
   useEffect(() => {
     if (betType === 'color') setChoice('red');
@@ -73,17 +92,28 @@ export default function Roulette({ chips, setChips }) {
           break;
       }
 
-      if (winnings > 0) {
-        setChips(chips + winnings);
-        setMessage(`You WON! Landed on ${landedNumber.color} (${landedNumber.number}). You earned ${winnings} chips.`);
-      } else {
-        setChips(chips - betAmount);
-        setMessage(`You lost. Landed on ${landedNumber.color} (${landedNumber.number}).`);
-      }
+   if (winnings > 0) {
+      setChips(chips + winnings);
+      setMessage(
+        `You WON! Landed on ${landedNumber.color} (${landedNumber.number}). You earned ${winnings} chips.`
+      );
 
-      setSpinning(false);
-    }, 5000); // matches CSS transition duration
-  };
+      // Log win to MongoDB
+      logGameResult("Win", betAmount, winnings);
+    } else {
+      setChips(chips - betAmount);
+      setMessage(
+        `You lost. Landed on ${landedNumber.color} (${landedNumber.number}).`
+      );
+
+      // Log loss to MongoDB
+      logGameResult("Loss", betAmount, -betAmount);
+    }
+
+    setSpinning(false);
+  }, 5000); // matches CSS transition duration
+};
+
 
   // Options for dropdown
   let choiceOptions = [];

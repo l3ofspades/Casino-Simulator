@@ -90,21 +90,49 @@ function Poker({ chips, setChips, onExit }) {
         const dealerHand = Hand.solve([...dealerCards, ...communityCards].map(c => c.code));
         const winner = Hand.winners([playerHand, dealerHand]);
 
-        // handle win/loss logic
-        if (winner.includes(playerHand)) {
-          setMessage("You win!");
-          setChips(chips + currentBet * 2);
-        } else if (winner.includes(dealerHand)) {
-          setMessage("Opponent Wins!");
-        } else {
-          setMessage("Push! It's a tie.");
-          setChips(chips + currentBet);
-        }
+if (winner.includes(playerHand)) {
+  setMessage("You win!");
+  setChips(chips + currentBet * 2);
+
+  //Log win to MongoDB
+  logGameResult("Win", currentBet, currentBet);
+} else if (winner.includes(dealerHand)) {
+  setMessage("Opponent Wins!");
+  setChips(chips - currentBet);
+
+  //Log loss to MongoDB
+  logGameResult("Loss", currentBet, -currentBet);
+} else {
+  setMessage("Push! It's a tie.");
+  setChips(chips + currentBet);
+
+  //Log push to MongoDB
+  logGameResult("Push", currentBet, 0);
+}
+
       } catch (err) {
         setMessage("Error evaluating hands.");
       }
     }
   };
+  const logGameResult = async (result, bet, netChange) => {
+  try {
+    await fetch("http://localhost:5000/api/history", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        player: "Jonathan",
+        game: "Poker",
+        bet,
+        result,
+        netChange,
+      }),
+    });
+  } catch (error) {
+    console.error(" Failed to log poker history:", error);
+  }
+};
+
 
   return (
     <div className="game-container">
@@ -127,7 +155,7 @@ function Poker({ chips, setChips, onExit }) {
       style={{ marginLeft: "10px" }}
       disabled={currentBet === 0}
     >
-      {roundStage === "Pre-flop" ? "Deal Flop" : roundStage === "flop" ? "Deal Turn" : roundStage === "turn" ? "Deal River" : "Showdown" }
+      {roundStage === "pre-flop" ? "Deal Flop" : roundStage === "flop" ? "Deal Turn" : roundStage === "turn" ? "Deal River" : "Showdown" }
     </button>
   </div>
 )}
