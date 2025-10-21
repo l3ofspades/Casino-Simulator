@@ -1,19 +1,23 @@
-const API_URL = "https://localhost:5000/api";
+const API_URL = "http://localhost:5000/api";
 
-// Get Chip Balance
-
-export async function getChips() {
-    const res = await fetch(`${API_URL}/chips`);
-    return res.json();
-}
-
-//Update Chip Balance
-
-export async function updateChips(amount) {
-    const res = await fetch(`${API_URL}/chips`, {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount })
-    });
-    return res.json();
+export async function logGameResult(player, game, bet, result, netChange) {
+    try {
+        const res = await fetch(`${API_URL}/history`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                player,
+                game,
+                bet,
+                result,
+                netChange,
+            }),
+        });
+        if (!res.ok) {
+            throw new Error('Failed to log game result');
+        }
+        return await res.json();
+    } catch (error) {
+        console.error('Error logging game result:', error);
+    }
 }

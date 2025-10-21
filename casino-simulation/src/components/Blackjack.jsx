@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useChips } from "../context/ChipContext";
+import { logGameResult } from "../services/api";
 
-export default function Blackjack({ chips, setChips }) {
-  const [deck, setDeck] = useState([]); // store all cards here
+export default function Blackjack() {
+  const { chips, modifyChips } = useChips();
+  const [deck, setDeck] = useState([]);
   const [playerCards, setPlayerCards] = useState([]);
   const [dealerCards, setDealerCards] = useState([]);
   const [message, setMessage] = useState("");
@@ -10,15 +13,13 @@ export default function Blackjack({ chips, setChips }) {
   const [revealDealer, setRevealDealer] = useState(false);
   const [gameOver, setGameOver] = useState(false);
 
-  // Create and shuffle deck on mount
   useEffect(() => {
-    fetch("https://deckofcardsapi.com/api/deck/new/draw/?count=312") // 6 decks * 52 cards
+    fetch("https://deckofcardsapi.com/api/deck/new/draw/?count=312")
       .then((res) => res.json())
       .then((data) => setDeck(data.cards));
   }, []);
 
   const drawCard = () => {
-    // remove top card from deck and return it
     const card = deck[0];
     setDeck((prev) => prev.slice(1));
     return card;
@@ -47,12 +48,10 @@ export default function Blackjack({ chips, setChips }) {
 
   const stand = () => {
     setRevealDealer(true);
-
     let dealerHand = [...dealerCards];
     while (getHandValue(dealerHand) < 17) {
       dealerHand.push(drawCard());
     }
-
     setDealerCards(dealerHand);
     endGame(dealerHand);
   };
@@ -84,35 +83,38 @@ export default function Blackjack({ chips, setChips }) {
     if (playerValue > 21) {
       result = "Bust! Dealer wins.";
       netChange = -bet;
-      setMessage(result);
-      setChips((c_) => c_ - bet);
+      modifyChips(-bet);
+      logGameResult("Loss", bet, netChange);
     } else if (dealerValue > 21) {
       result = "Dealer busts! You win!";
       netChange = bet;
-      setMessage(result);
-      setChips((c_) => c_ + bet);
+      modifyChips(bet);
+      logGameResult("Win", bet, netChange);
     } else if (playerValue > dealerValue) {
       result = "You win!";
       netChange = bet;
-      setMessage(result);
-      setChips((c_) => c_ + bet);
+      modifyChips(bet);
+      logGameResult("Win", bet, netChange);
     } else if (dealerValue > playerValue) {
       result = "Dealer wins.";
       netChange = -bet;
-      setMessage(result);
-      setChips((c_) => c_ - bet);
+      modifyChips(-bet);
+      logGameResult("Loss", bet, netChange);
     } else {
       result = "Push.";
       netChange = 0;
-      setMessage(result);
+      logGameResult("Push", bet, 0);
     }
+
+    setMessage(result);
     setGameOver(true);
   };
+
 
   return (
     <div>
       <h1>Blackjack</h1>
-      <p>Chips: {chips}</p>
+      <p>💰 Chips: {chips}</p>
       {!gameStarted ? (
         <div>
           <input

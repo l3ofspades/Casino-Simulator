@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useChips } from '../context/ChipContext';
+import { logGameResult } from '../services/api';
 
 const numbers = [
   { number: 0, color: 'green' }, { number: 32, color: 'red' }, { number: 15, color: 'black' },
@@ -16,35 +18,18 @@ const numbers = [
   { number: 26, color: 'black' },
 ];
 
-export default function Roulette({ chips, setChips }) {
+export default function Roulette() {
+  const { chips, modifyChips } = useChips();
   const [angle, setAngle] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
   const [bet, setBet] = useState('');
-  const [betType, setBetType] = useState('color'); // color, number, evenodd, lowhigh
+  const [betType, setBetType] = useState('color');
   const [choice, setChoice] = useState('red');
   const [message, setMessage] = useState('');
 
-  const logGameResult = async (result, bet, netChange) => {
-    try {
-      await fetch('http://localhost:5000/api/history', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          player: 'Jonathan',
-          game: 'Roulette',
-          bet,
-          result,
-          netChange,
-        }),
-      });
-    console.log(` Logged ${result} for Roulette: ${netChange}`);
-    } catch (error) {
-      console.error(' Failed to log roulette history:', error);
-    }
-  }; 
 
-  // Reset choice when betType changes
+
   useEffect(() => {
     if (betType === 'color') setChoice('red');
     if (betType === 'number') setChoice('0');
@@ -61,10 +46,8 @@ export default function Roulette({ chips, setChips }) {
 
     const randomIndex = Math.floor(Math.random() * numbers.length);
     const landedNumber = numbers[randomIndex];
-   
-
     const segmentAngle = 360 / numbers.length;
-    const spins = 5; // full spins
+    const spins = 5;
     const newAngle = 360 * spins + randomIndex * segmentAngle + segmentAngle / 2;
 
     setSpinning(true);
@@ -72,50 +55,48 @@ export default function Roulette({ chips, setChips }) {
 
     setTimeout(() => {
       setResult(landedNumber);
-      setAngle(newAngle); 
+      setAngle(newAngle);
 
       let winnings = 0;
       switch (betType) {
         case 'color':
-          if (choice === landedNumber.color) winnings = choice === 'green' ? betAmount * 14 : betAmount * 2;
+          if (choice === landedNumber.color)
+            winnings = choice === 'green' ? betAmount * 14 : betAmount * 2;
           break;
         case 'number':
-          if (parseInt(choice) === landedNumber.number) winnings = betAmount * 36;
+          if (parseInt(choice) === landedNumber.number)
+            winnings = betAmount * 36;
           break;
         case 'evenodd':
-          if (choice === 'even' && landedNumber.number !== 0 && landedNumber.number % 2 === 0) winnings = betAmount * 2;
-          if (choice === 'odd' && landedNumber.number % 2 === 1) winnings = betAmount * 2;
+          if (choice === 'even' && landedNumber.number !== 0 && landedNumber.number % 2 === 0)
+            winnings = betAmount * 2;
+          if (choice === 'odd' && landedNumber.number % 2 === 1)
+            winnings = betAmount * 2;
           break;
         case 'lowhigh':
-          if (choice === 'low' && landedNumber.number >= 1 && landedNumber.number <= 18) winnings = betAmount * 3;
-          if (choice === 'high' && landedNumber.number >= 19 && landedNumber.number <= 36) winnings = betAmount * 3;
+          if (choice === 'low' && landedNumber.number >= 1 && landedNumber.number <= 18)
+            winnings = betAmount * 3;
+          if (choice === 'high' && landedNumber.number >= 19 && landedNumber.number <= 36)
+            winnings = betAmount * 3;
+          break;
+        default:
           break;
       }
 
-   if (winnings > 0) {
-      setChips(chips + winnings);
-      setMessage(
-        `You WON! Landed on ${landedNumber.color} (${landedNumber.number}). You earned ${winnings} chips.`
-      );
+      if (winnings > 0) {
+        modifyChips(winnings);
+        setMessage(`You WON! Landed on ${landedNumber.color} (${landedNumber.number}). You earned ${winnings} chips.`);
+        logGameResult('Win', betAmount, winnings);
+      } else {
+        modifyChips(-betAmount);
+        setMessage(`You lost. Landed on ${landedNumber.color} (${landedNumber.number}).`);
+        logGameResult('Loss', betAmount, -betAmount);
+      }
 
-      // Log win to MongoDB
-      logGameResult("Win", betAmount, winnings);
-    } else {
-      setChips(chips - betAmount);
-      setMessage(
-        `You lost. Landed on ${landedNumber.color} (${landedNumber.number}).`
-      );
+      setSpinning(false);
+    }, 5000);
+  };
 
-      // Log loss to MongoDB
-      logGameResult("Loss", betAmount, -betAmount);
-    }
-
-    setSpinning(false);
-  }, 5000); // matches CSS transition duration
-};
-
-
-  // Options for dropdown
   let choiceOptions = [];
   if (betType === 'color') choiceOptions = ['red', 'black', 'green'];
   if (betType === 'number') choiceOptions = numbers.map(n => n.number.toString());

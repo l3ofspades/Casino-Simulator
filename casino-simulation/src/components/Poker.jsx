@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Hand } from "pokersolver"; 
-import PlayAgain from './common/Playagian';
+import { Hand } from "pokersolver";
+import PlayAgain from "./common/Playagian";
+import { useChips } from "../context/ChipContext";
+import { logGameResult } from "../services/api";
 
-
-
-function Poker({ chips, setChips, onExit }) {
+function Poker({ onExit }) {
+  const { chips, modifyChips } = useChips();
   const [deckId, setDeckId] = useState(null);
   const [playerCards, setPlayerCards] = useState([]);
   const [dealerCards, setDealerCards] = useState([]);
@@ -14,7 +15,6 @@ function Poker({ chips, setChips, onExit }) {
   const [roundStage, setRoundStage] = useState("pre-flop"); // pre-flop, flop, turn, river, showdown
   const [roundOver, setRoundOver] = useState(false);
 
-  // Create a new deck on mount
   useEffect(() => {
     const getDeck = async () => {
       const res = await fetch(
@@ -26,17 +26,15 @@ function Poker({ chips, setChips, onExit }) {
     getDeck();
   }, []);
 
-  // Place bet
   const placeBet = (amount) => {
     if (amount > chips) {
       alert("Not enough chips!");
       return;
     }
     setCurrentBet(amount);
-    setChips(chips - amount);
+    modifyChips(-amount);
   };
 
-  // Start a new hand
   const startHand = async () => {
     if (!deckId) return;
 
@@ -54,7 +52,6 @@ function Poker({ chips, setChips, onExit }) {
     setCurrentBet(0);
   };
 
-  // Deal next stage
   const dealNext = async () => {
     if (!deckId) return;
 
@@ -80,58 +77,36 @@ function Poker({ chips, setChips, onExit }) {
       setCommunityCards([...communityCards, data.cards[0]]);
       setRoundStage("river");
     } else if (roundStage === "river") {
-      // Showdown
       setRoundOver(true);
       setRoundStage("showdown");
 
-      // Compute winner using pokersolver
       try {
-        const playerHand = Hand.solve([...playerCards, ...communityCards].map(c => c.code));
-        const dealerHand = Hand.solve([...dealerCards, ...communityCards].map(c => c.code));
+        const playerHand = Hand.solve(
+          [...playerCards, ...communityCards].map((c) => c.code)
+        );
+        const dealerHand = Hand.solve(
+          [...dealerCards, ...communityCards].map((c) => c.code)
+        );
         const winner = Hand.winners([playerHand, dealerHand]);
 
-if (winner.includes(playerHand)) {
-  setMessage("You win!");
-  setChips(chips + currentBet * 2);
-
-  //Log win to MongoDB
-  logGameResult("Win", currentBet, currentBet);
-} else if (winner.includes(dealerHand)) {
-  setMessage("Opponent Wins!");
-  setChips(chips - currentBet);
-
-  //Log loss to MongoDB
-  logGameResult("Loss", currentBet, -currentBet);
-} else {
-  setMessage("Push! It's a tie.");
-  setChips(chips + currentBet);
-
-  //Log push to MongoDB
-  logGameResult("Push", currentBet, 0);
-}
-
+        if (winner.includes(playerHand)) {
+          setMessage("You win!");
+          modifyChips(currentBet * 2);
+          logGameResult("Win", currentBet, currentBet);
+        } else if (winner.includes(dealerHand)) {
+          setMessage("Opponent Wins!");
+          modifyChips(-currentBet);
+          logGameResult("Loss", currentBet, -currentBet);
+        } else {
+          setMessage("Push! It's a tie.");
+          modifyChips(currentBet);
+          logGameResult("Push", currentBet, 0);
+        }
       } catch (err) {
         setMessage("Error evaluating hands.");
       }
     }
   };
-  const logGameResult = async (result, bet, netChange) => {
-  try {
-    await fetch("http://localhost:5000/api/history", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        player: "Jonathan",
-        game: "Poker",
-        bet,
-        result,
-        netChange,
-      }),
-    });
-  } catch (error) {
-    console.error(" Failed to log poker history:", error);
-  }
-};
 
 
   return (
@@ -139,27 +114,35 @@ if (winner.includes(playerHand)) {
       <h2>Texas Hold'em</h2>
       <div style={{ marginBottom: "10px" }}>💰 Chips: {chips}</div>
 
-{roundStage !== "showdown" && playerCards.length > 0 && (
-  <div style={{ marginBottom: "10px" }}>
-    <input
-      type="number"
-      placeholder="Enter bet"
-      value={currentBet}
-      onChange={(e) => setCurrentBet(Number(e.target.value))}
-    />
-    <button onClick={() => placeBet(currentBet)} style={{ marginLeft: "10px" }}>
-      Place Bet
-    </button>
-    <button 
-      onClick={dealNext}
-      style={{ marginLeft: "10px" }}
-      disabled={currentBet === 0}
-    >
-      {roundStage === "pre-flop" ? "Deal Flop" : roundStage === "flop" ? "Deal Turn" : roundStage === "turn" ? "Deal River" : "Showdown" }
-    </button>
-  </div>
-)}
-      
+      {roundStage !== "showdown" && playerCards.length > 0 && (
+        <div style={{ marginBottom: "10px" }}>
+          <input
+            type="number"
+            placeholder="Enter bet"
+            value={currentBet}
+            onChange={(e) => setCurrentBet(Number(e.target.value))}
+          />
+          <button
+            onClick={() => placeBet(currentBet)}
+            style={{ marginLeft: "10px" }}
+          >
+            Place Bet
+          </button>
+          <button
+            onClick={dealNext}
+            style={{ marginLeft: "10px" }}
+            disabled={currentBet === 0}
+          >
+            {roundStage === "pre-flop"
+              ? "Deal Flop"
+              : roundStage === "flop"
+              ? "Deal Turn"
+              : roundStage === "turn"
+              ? "Deal River"
+              : "Showdown"}
+          </button>
+        </div>
+      )}
 
       {playerCards.length === 0 && <button onClick={startHand}>Start Hand</button>}
 
@@ -169,9 +152,17 @@ if (winner.includes(playerHand)) {
           {dealerCards.map((card, i) => (
             <img
               key={i}
-              src={roundOver ? card.image : "https://deckofcardsapi.com/static/img/back.png"}
+              src={
+                roundOver
+                  ? card.image
+                  : "https://deckofcardsapi.com/static/img/back.png"
+              }
               alt="card"
-              style={{ width: "80px", height: "120px", marginRight: "5px" }}
+              style={{
+                width: "80px",
+                height: "120px",
+                marginRight: "5px",
+              }}
             />
           ))}
         </div>
@@ -185,7 +176,11 @@ if (winner.includes(playerHand)) {
               key={i}
               src={card.image}
               alt="card"
-              style={{ width: "80px", height: "120px", marginRight: "5px" }}
+              style={{
+                width: "80px",
+                height: "120px",
+                marginRight: "5px",
+              }}
             />
           ))}
         </div>
@@ -199,16 +194,18 @@ if (winner.includes(playerHand)) {
               key={i}
               src={card.image}
               alt="card"
-              style={{ width: "80px", height: "120px", marginRight: "5px" }}
+              style={{
+                width: "80px",
+                height: "120px",
+                marginRight: "5px",
+              }}
             />
           ))}
         </div>
       </div>
 
       {message && <h3 style={{ marginTop: "20px" }}>{message}</h3>}
-      {roundOver && (
-        <PlayAgain onPlayAgain={startHand} onExit={onExit} />
-      )}
+      {roundOver && <PlayAgain onPlayAgain={startHand} onExit={onExit} />}
     </div>
   );
 }
