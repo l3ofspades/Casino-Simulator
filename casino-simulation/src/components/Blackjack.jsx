@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useChips } from "../context/ChipContext";
 import { logGameResult } from "../services/api";
+import backCard from "../assets/card-back.png";
 
 export default function Blackjack() {
   const { chips, modifyChips } = useChips();
-  const [deck, setDeck] = useState([]);
+  const [deckId, setDeckId] = useState(null);
   const [playerCards, setPlayerCards] = useState([]);
   const [dealerCards, setDealerCards] = useState([]);
   const [message, setMessage] = useState("");
@@ -14,20 +15,28 @@ export default function Blackjack() {
   const [gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
-    fetch("https://deckofcardsapi.com/api/deck/new/draw/?count=312")
-      .then((res) => res.json())
-      .then((data) => setDeck(data.cards));
+    async function createDeck() {
+      const res = await fetch("https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=6");
+      const data = await res.json();
+      setDeckId(data.deck_id);
+    }
+    createDeck();
   }, []);
 
-  const drawCard = () => {
-    const card = deck[0];
-    setDeck((prev) => prev.slice(1));
-    return card;
+  const drawCard = async () => {
+    const res = await fetch(`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`);
+    const data = await res.json();
+    return data.cards[0];
   };
 
-  const startGame = () => {
+  const startGame = async () => {
     if (bet <= 0 || bet > chips) {
       alert("Please place a valid bet.");
+      return;
+    }
+
+    if (!deckId) {
+      alert("Deck not ready yet. Please wait a second and try again.");
       return;
     }
 
@@ -36,24 +45,28 @@ export default function Blackjack() {
     setGameOver(false);
     setMessage("");
 
-    const player = [drawCard(), drawCard()];
-    const dealer = [drawCard(), drawCard()];
+    const player = [await drawCard(), await drawCard()];
+    const dealer = [await drawCard(), await drawCard()];
     setPlayerCards(player);
     setDealerCards(dealer);
   };
 
-  const hit = () => {
-    setPlayerCards((prev) => [...prev, drawCard()]);
+  const hit = async () => {
+    const card = await drawCard();
+    setPlayerCards((prev) => [...prev, card]);
   };
 
-  const stand = () => {
+  const stand = async () => {
     setRevealDealer(true);
     let dealerHand = [...dealerCards];
+
     while (getHandValue(dealerHand) < 17) {
-      dealerHand.push(drawCard());
+      const newCard = await drawCard();
+      dealerHand.push(newCard);
     }
+
     setDealerCards(dealerHand);
-    endGame(dealerHand);
+    await endGame(dealerHand);
   };
 
   const getHandValue = (cards) => {
@@ -73,7 +86,9 @@ export default function Blackjack() {
     return value;
   };
 
-  const endGame = (dealerFinalCards) => {
+  const endGame = async (dealerFinalCards) => {
+    await fetch(`https://deckofcardsapi.com/api/deck/${deckId}/shuffle/`);
+
     const playerValue = getHandValue(playerCards);
     const dealerValue = getHandValue(dealerFinalCards);
 
@@ -110,6 +125,15 @@ export default function Blackjack() {
     setGameOver(true);
   };
 
+  const resetGame = () => {
+    setPlayerCards([]);
+    setDealerCards([]);
+    setBet(0);
+    setGameStarted(false);
+    setMessage("");
+    setRevealDealer(false);
+    setGameOver(false);
+  };
 
   return (
     <div>
@@ -130,12 +154,7 @@ export default function Blackjack() {
           <h2>Dealer's Hand</h2>
           {dealerCards.map((card, i) =>
             i === 1 && !revealDealer ? (
-              <img
-                key={i}
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Card_back_01.svg/200px-Card_back_01.svg.png"
-                alt="Hidden card"
-                width="100"
-              />
+              <img key={i} src={backCard} alt="Hidden card" width="100" />
             ) : (
               <img key={i} src={card.image} alt={card.code} width="100" />
             )
@@ -153,7 +172,12 @@ export default function Blackjack() {
             </>
           )}
 
-          {gameOver && <h3>{message}</h3>}
+          {gameOver && (
+            <>
+              <h3>{message}</h3>
+              <button onClick={resetGame}>Play Again</button>
+            </>
+          )}
         </>
       )}
     </div>

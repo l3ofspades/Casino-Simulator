@@ -2,50 +2,60 @@ import { useEffect, useState } from 'react';
 import { useChips } from '../context/ChipContext';
 
 export default function ChipWallet() {
-   const { chips, modifyChips, loading } = useChips();
+    const { chips, modifyChips, loading } = useChips();
     const [amount, setAmount] = useState('');
 
+
+
     if (loading) {
-        return <div>Loading chip balance...</div>;
+        return <div style={{ color: '#ccc' }}>Loading chips...</div>;
     }
 
-    useEffect(() => {
-        async function fetchChips() {
-            try {
-                const data = await getChips();
-                setChips(data.chips);
-            } catch (error) {
-                console.error('Failed to fetch chip balance:', error);
-            }
+    const handleUpdate = async (change) => {
+        try {
+            await modifyChips(change);
+            setAmount('');
+        } catch (error) {
+            console.error('Error updating chips:', error);
         }
-        fetchChips();
-    }, []);
-
-  const handleUpdate = async (change) => {
-    try {
-      const data = await updateChips(change);
-      setChips(data.chips); // ✅ update the state so UI reflects new balance
-      setAmount('');
-    } catch (error) {
-      console.error('Failed to update chip balance:', error);
-    }
-  };
+    };
 
     return (
-        <div style={{ marginBottom: 20, fontWeight: 'bold' }}>
-            <p>Virtual Chips: {chips}</p>
-            <div>
-                <input
-                type="number"
-                value={amount}
-                placeholder="Enter amount"
-                onChange={(e) => setAmount(e.target.value)}
-                style={{ marginRight: 10 }}
-                />
-                <button onClick={() => handleUpdate(Number(amount))}>Add Chips</button>
-                <button onClick={() => handleUpdate(-Number(amount))} style={{ marginLeft: 10 }}>Remove Chips</button>
-            </div>
-        </div>
-    );
-}
+        <div style={{
+            marginBottom: 10,
+            fontWeight: 'bold',
+            color: '#fff',
+            background: 'rgba(255, 255, 255, 0.05)',
+            padding: '10px 20px',
+            borderRadius: '8px',
+            textAlign: 'center',
+            width: 'fit-content',
+        }}
+        >💰 {' '}
+        <span style={{ color: '#00ff7f' }}>{chips}</span>
 
+    {chips <= 0 && (
+        <div style={{ marginTop: 10, color: 'red' }}>
+          You’re out of chips!
+          <button
+            onClick={() => modifyChips(1000)}
+            style={{
+              marginLeft: 10,
+              background: '#222',
+              color: '#fff',
+              border: '1px solid #555',
+              padding: '5px 10px',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              transition: '0.2s',
+            }}
+            onMouseOver={(e) => (e.target.style.background = '#444')}
+            onMouseOut={(e) => (e.target.style.background = '#222')}
+          >
+            Refill 1000
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

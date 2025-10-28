@@ -1,0 +1,40 @@
+/* button and input design */
+
+button {
+    background: linear-gradient(180deg, var(--green), #1b9b4f);
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+
+}
+
+button:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(180deg, #2ecc71, #1abc9c);
+}
+
+button[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+input,
+select {
+    background: #0f141b;
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    outline: none;
+}
+
+input:focus,
+select:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 5px rgba(39, 174, 96, 0.4);
+}

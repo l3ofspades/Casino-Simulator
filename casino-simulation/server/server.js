@@ -12,35 +12,55 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
+//  Connect to MongoDB (with validation)
+if (!process.env.MONGO_URI) {
+  console.error('❌ Missing MONGO_URI in .env file');
+  process.exit(1);
+}
+
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB connected'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch((err) => console.error('❌ MongoDB connection error:', err));
 
-// Basic route
+//  Basic route
 app.get('/', (req, res) => {
   res.send('Casino Simulation Server is running');
 });
 
-// Chips (temporary in-memory)
+//  Temporary in-memory chip balance
 let chips = 1000;
 
+// GET chip balance
 app.get('/api/chips', (req, res) => {
   res.json({ chips });
 });
 
+// POST update chip balance
 app.post('/api/chips', (req, res) => {
   const { amount } = req.body;
-  chips += amount;
+
+  const parsedAmount = parseInt(amount, 10);
+  if (isNaN(parsedAmount)) {
+    return res.status(400).json({ message: 'Invalid chip amount' });
+  }
+
+  chips += parsedAmount;
+  if (chips < 0) chips = 0; // prevent negatives
+
+  console.log(`💰 Chip balance updated: ${chips}`);
   res.json({ message: 'Chips updated', chips });
 });
 
-
-// Save a new game result
+//  Save a new game result
 app.post('/api/history', async (req, res) => {
   try {
     const { player, game, bet, result, netChange } = req.body;
+
+    if (!player || !game || bet == null || result == null) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
     const entry = new GameHistory({ player, game, bet, result, netChange });
     await entry.save();
     res.status(201).json({ message: 'Game history recorded', entry });
@@ -50,7 +70,7 @@ app.post('/api/history', async (req, res) => {
   }
 });
 
-//  Get game history for a specific player
+//  Get game history for a player
 app.get('/api/history/:player', async (req, res) => {
   try {
     const { player } = req.params;
@@ -62,4 +82,5 @@ app.get('/api/history/:player', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+//  Start server
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

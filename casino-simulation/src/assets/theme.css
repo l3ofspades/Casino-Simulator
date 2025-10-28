@@ -1,0 +1,21 @@
+/* Defining all the reusable design tokens */
+
+:root {
+    --bg-dark: #0b0f14;
+    --bg-card: #141a22;
+    --gold: #e0c36c;
+    --green: #27ae60;
+    --red: #e74c3c;
+    --text: #e6f1ff;
+    --muted: #9ba5b1;
+    --border: #1e2a36;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    --radius: 12px;
+}
+
+body {
+    margin: 0;
+    background: radial-gradient(circle at top left, #10141a, #05080b 80%);
+    color: var(--text);
+    font-family: "Poppins", system-ui, sans-serif;
+}

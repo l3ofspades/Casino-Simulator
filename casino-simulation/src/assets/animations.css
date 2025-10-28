@@ -1,0 +1,14 @@
+.roulette-wheel {
+    transition: transform 5s ease-out;
+    filter: drop-shadow(0 0 10px rgba(39, 174, 96, 0.5));
+}
+
+h2,h3 {
+    color: var(--gold);
+    text-shadow: 0 0 6px rgba(224, 195, 108, 0.6);
+}
+
+button:hover,
+select:hover {
+    transition: all 0.2s ease;
+}
