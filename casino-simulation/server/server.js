@@ -3,6 +3,13 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import GameHistory from './models/GameHistory.js';
+import authRoutes from "./routes/auth.js";
+
+//  Use authentication routes
+
+app.use('/api/auth', authRoutes);
+
+
 
 dotenv.config();
 

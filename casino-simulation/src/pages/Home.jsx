@@ -1,22 +1,28 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 
-
-export default function HomePage() {
-  const navigate = useNavigate();
+export default function Home() {
+  const { user, logout } = useAuth();
 
   return (
-    <div className="home-container">
-      <h1>🎰 Casino Simulator 🎲</h1>
-      <p>Welcome! Choose your game below:</p>
+    <div style={{ textAlign: "center" }}>
+      <h1>🎰 Casino Game Simulator</h1>
 
-      <div className="home-buttons">
-        <button onClick={() => navigate("/blackjack")}>♠ Blackjack</button>
-        <button onClick={() => navigate("/poker")}>♥ Poker</button>
-        <button onClick={() => navigate("/roulette")}>♦ Roulette</button>
+      {user ? (
+        <>
+          <p>Welcome, {user.username}!</p>
+          <button onClick={logout}>Logout</button>
+        </>
+      ) : (
+        <Link to="/login">Login</Link>
+      )}
+
+      <div style={{ marginTop: "20px" }}>
+        <Link to="/blackjack">Blackjack</Link> |{" "}
+        <Link to="/poker">Poker</Link> |{" "}
+        <Link to="/roulette">Roulette</Link> |{" "}
+        <Link to="/history">Game History</Link>
       </div>
     </div>
   );
 }
-
-    
