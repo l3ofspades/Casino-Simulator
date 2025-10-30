@@ -56,6 +56,13 @@ export default function LoginPage() {
         </button>
       </form>
 
+<p>
+  Don’t have an account?{" "}
+  <a href="/register" style={{ color: "#00f", textDecoration: "underline" }}>
+    Register here
+  </a>
+</p>
+
       {message && <p style={{ marginTop: '20px' }}>{message}</p>}
     </div>
   );

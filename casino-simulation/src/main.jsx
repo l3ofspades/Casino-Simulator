@@ -10,6 +10,7 @@ import RoulettePage from './pages/RoulettePage.jsx';
 import { ChipProvider } from './context/ChipContext.jsx';
 import GameHistoryPage from './pages/GameHistoryPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import RegisterPage from './pages/RegisterPage.jsx';
 import "./assets/index.css";
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/blackjack" element={<BlackjackPage />} />
         <Route path="/poker" element={<PokerPage />} />
         <Route path="/roulette" element={<RoulettePage />} />
