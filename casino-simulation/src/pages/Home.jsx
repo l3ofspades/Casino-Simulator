@@ -95,12 +95,16 @@ export default function Home() {
           </Link>
         )}
 
+    
         <div style={{ marginTop: "10px" }}>
           {["Blackjack", "Poker", "Roulette", "Game History"].map(
             (game, i) => (
               <Link
                 key={i}
-                to={`/${game.toLowerCase().replace(" ", "")}`}
+                to={ game === "Game History"
+                  ? "/history"
+                  : `/${game.toLowerCase().replace(" ", "")}`
+                }
                 style={{
                   color: "#00ff7f",
                   textDecoration: "none",

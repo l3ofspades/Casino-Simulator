@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { register } from '../api/auth';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function RegisterPage() {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
+    const navigate = useNavigate();
 
     const handleRegister = async (e) => {
         e.preventDefault();
@@ -55,10 +57,44 @@ export default function RegisterPage() {
                         style={{ display: 'block', padding: '8px', width: '300px' }}
                     />
                 </div>
-        <button type="submit" style={{ padding: '10px 20px' }}>Register</button>
-    </form>
 
-      {message && <p style={{ marginTop: "20px" }}>{message}</p>}
-    </div>
-  );
+                <button
+                    type="submit"
+                    style={{
+                        backgroundColor: "#00ff7f",
+                        color: "#000",
+                        fontWeight: "600",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "10px 20px",
+                        cursor: "pointer",
+                        marginBottom: "10px",
+                        transition: '0.3s',
+                    }}
+                    onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = "#00cc66";
+                    }}
+                    onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = "#00ff7f";
+                    }}
+                >
+                    Register
+                </button>
+
+                <Link
+                to="/login"
+                style={{
+                    display: "block",
+                    textAlign: "center",
+                    color: "#00ff7f",
+                    textDecoration: "none",
+                    marginTop: "10px",
+                }}
+                >
+                Already have an account? Login
+                </Link>
+            </form>
+            {message && <p style={{ marginTop: "20px" }}>{message}</p>}
+        </div>
+    );
 }

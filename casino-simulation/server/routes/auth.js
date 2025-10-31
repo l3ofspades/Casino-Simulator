@@ -10,6 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET ||"supersecretkey";
 router.post("/register", async (req, res) => {
     try {
         const { username, email, password } = req.body;
+        console.log("Register request:", req.body);
         const existing = await User.findOne({ email });
         if (existing) {
             return res.status(400).json({ message: "Email already in use" });
@@ -27,12 +28,13 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
+        console.log("Login request:", req.body);
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(400).json({ message: "Invalid email or password" });
         }
 
-        const match = await bcrypt.compare(password, user.password);
+        const match = await bcrypt.compare(password, user.passwordHash);
         if (!match) {
             return res.status(400).json({ message: "Invalid email or password" });
         }
