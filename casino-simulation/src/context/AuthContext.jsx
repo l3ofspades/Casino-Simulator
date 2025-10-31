@@ -12,14 +12,26 @@ export function AuthProvider({ children }) {
     const savedToken = localStorage.getItem("token");
     const savedUser = localStorage.getItem("user");
 
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
+    try {
+     
+      if (savedToken && savedUser && savedUser !== "undefined") {
+        setToken(savedToken);
+        setUser(JSON.parse(savedUser));
+      } else {
+        // Clean up any bad data
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+      }
+    } catch (error) {
+      console.error("Error restoring user session:", error);
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
     }
+
     setLoading(false);
   }, []);
 
-  // Login — save both to context + localStorage
+  // Login 
   const login = (userData, userToken) => {
     setUser(userData);
     setToken(userToken);
@@ -27,7 +39,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem("user", JSON.stringify(userData));
   };
 
-  // Logout — clear session completely
+  // Logout 
   const logout = () => {
     setUser(null);
     setToken(null);
