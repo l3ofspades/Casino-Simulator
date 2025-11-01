@@ -46,6 +46,8 @@ app.post('/api/chips', (req, res) => {
 // History routes
 app.post('/api/history', async (req, res) => {
   try {
+    console.log(" /api/history request received:", req.body);
+
     const { player, game, bet, result, netChange } = req.body;
     const entry = new GameHistory({ player, game, bet, result, netChange });
     await entry.save();

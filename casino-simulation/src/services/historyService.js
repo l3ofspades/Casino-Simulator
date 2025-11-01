@@ -4,7 +4,7 @@ const API_URL = 'http://localhost:5000/api/history';
 
 export const saveGameHistory = async (data) => {
     try {
-        const response = await axios.post(`${API_URL, data}`);
+       const response = await axios.post(API_URL, data);
         return response.data;
     } catch (error) {
         console.error('Error saving game history:', error);

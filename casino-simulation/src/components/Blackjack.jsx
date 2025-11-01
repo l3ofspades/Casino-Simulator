@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useChips } from "../context/ChipContext";
-import { logGameResult } from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import { saveGameHistory } from "../services/historyService";
 import backCard from "../assets/card-back.png";
 
 export default function Blackjack() {
   const { chips, modifyChips } = useChips();
+  const { user } = useAuth();
   const [deckId, setDeckId] = useState(null);
   const [playerCards, setPlayerCards] = useState([]);
   const [dealerCards, setDealerCards] = useState([]);
@@ -27,6 +29,23 @@ export default function Blackjack() {
     const res = await fetch(`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`);
     const data = await res.json();
     return data.cards[0];
+  };
+
+  const getHandValue = (cards) => {
+    let value = 0;
+    let aces = 0;
+    for (const card of cards) {
+      if (["KING", "QUEEN", "JACK"].includes(card.value)) value += 10;
+      else if (card.value === "ACE") {
+        value += 11;
+        aces++;
+      } else value += parseInt(card.value);
+    }
+    while (value > 21 && aces > 0) {
+      value -= 10;
+      aces--;
+    }
+    return value;
   };
 
   const startGame = async () => {
@@ -52,78 +71,86 @@ export default function Blackjack() {
   };
 
   const hit = async () => {
-    const card = await drawCard();
-    setPlayerCards((prev) => [...prev, card]);
+    const newCard = await drawCard();
+    const newHand = [...playerCards, newCard];
+    setPlayerCards(newHand);
+
+    const total = getHandValue(newHand);
+    if (total > 21) {
+      handleEndGame(newHand, dealerCards);
+    }
   };
 
   const stand = async () => {
     setRevealDealer(true);
-    let dealerHand = [...dealerCards];
 
+    let dealerHand = [...dealerCards];
     while (getHandValue(dealerHand) < 17) {
       const newCard = await drawCard();
       dealerHand.push(newCard);
     }
 
     setDealerCards(dealerHand);
-    await endGame(dealerHand);
+    handleEndGame(playerCards, dealerHand);
   };
 
-  const getHandValue = (cards) => {
-    let value = 0;
-    let aces = 0;
-    for (const card of cards) {
-      if (["KING", "QUEEN", "JACK"].includes(card.value)) value += 10;
-      else if (card.value === "ACE") {
-        value += 11;
-        aces++;
-      } else value += parseInt(card.value);
-    }
-    while (value > 21 && aces > 0) {
-      value -= 10;
-      aces--;
-    }
-    return value;
-  };
+  const handleEndGame = async (playerFinal, dealerFinal) => {
+    const playerValue = getHandValue(playerFinal);
+    const dealerValue = getHandValue(dealerFinal);
 
-  const endGame = async (dealerFinalCards) => {
-    await fetch(`https://deckofcardsapi.com/api/deck/${deckId}/shuffle/`);
-
-    const playerValue = getHandValue(playerCards);
-    const dealerValue = getHandValue(dealerFinalCards);
-
-    let result = "";
+    let resultText = "";
+    let resultType = "";
     let netChange = 0;
 
     if (playerValue > 21) {
-      result = "Bust! Dealer wins.";
+      resultText = "Bust! Dealer wins.";
+      resultType = "Loss";
       netChange = -bet;
       modifyChips(-bet);
-      logGameResult("Loss", bet, netChange);
     } else if (dealerValue > 21) {
-      result = "Dealer busts! You win!";
+      resultText = "Dealer busts! You win!";
+      resultType = "Win";
       netChange = bet;
       modifyChips(bet);
-      logGameResult("Win", bet, netChange);
     } else if (playerValue > dealerValue) {
-      result = "You win!";
+      resultText = "You win!";
+      resultType = "Win";
       netChange = bet;
       modifyChips(bet);
-      logGameResult("Win", bet, netChange);
     } else if (dealerValue > playerValue) {
-      result = "Dealer wins.";
+      resultText = "Dealer wins.";
+      resultType = "Loss";
       netChange = -bet;
       modifyChips(-bet);
-      logGameResult("Loss", bet, netChange);
     } else {
-      result = "Push.";
+      resultText = "Push!";
+      resultType = "Push";
       netChange = 0;
-      logGameResult("Push", bet, 0);
     }
 
-    setMessage(result);
-    setGameOver(true);
-  };
+  setMessage(`${resultText} (Player: ${playerValue}, Dealer: ${dealerValue})`);
+  setGameOver(true);
+
+  try {
+    console.log("🧠 Attempting to save game history:", {
+      player: user?.email || "Guest",
+      game: "Blackjack",
+      bet,
+      result: resultType,
+      netChange,
+    });
+    const res = await saveGameHistory({
+      player: user?.email || "Guest",
+      game: "Blackjack",
+      bet,
+      result: resultType,
+      netChange,
+    });
+    console.log("Blackjack history saved:", res);
+  } catch (err) {
+    console.error("Failed to save Blackjack history:", err);
+  }
+};
 
   const resetGame = () => {
     setPlayerCards([]);
@@ -139,6 +166,7 @@ export default function Blackjack() {
     <div>
       <h1>Blackjack</h1>
       <p>💰 Chips: {chips}</p>
+
       {!gameStarted ? (
         <div>
           <input
@@ -151,7 +179,7 @@ export default function Blackjack() {
         </div>
       ) : (
         <>
-          <h2>Dealer's Hand</h2>
+          <h2>Dealer's Hand {revealDealer && `(${getHandValue(dealerCards)})`}</h2>
           {dealerCards.map((card, i) =>
             i === 1 && !revealDealer ? (
               <img key={i} src={backCard} alt="Hidden card" width="100" />
@@ -160,7 +188,7 @@ export default function Blackjack() {
             )
           )}
 
-          <h2>Player's Hand</h2>
+          <h2>Player's Hand ({getHandValue(playerCards)})</h2>
           {playerCards.map((card, i) => (
             <img key={i} src={card.image} alt={card.code} width="100" />
           ))}
@@ -174,7 +202,7 @@ export default function Blackjack() {
 
           {gameOver && (
             <>
-              <h3>{message}</h3>
+              <h3 style={{ marginTop: "20px" }}>{message}</h3>
               <button onClick={resetGame}>Play Again</button>
             </>
           )}

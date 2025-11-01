@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function GameHistoryPage() {
+  const { user } = useAuth();
   const [gameHistory, setGameHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ wins: 0, losses: 0, totalNet: 0 });
@@ -9,8 +11,12 @@ export default function GameHistoryPage() {
 
   useEffect(() => {
     const fetchGameHistory = async () => {
+      if (!user) return;
+
       try {
-        const response = await fetch("http://localhost:5000/api/history/Jonathan");
+        const response = await fetch(
+          `http://localhost:5000/api/history/${user.email || "Guest"}`
+        );
         const data = await response.json();
         setGameHistory(data);
         // Calculate summary stats
@@ -33,7 +39,7 @@ export default function GameHistoryPage() {
     };
 
     fetchGameHistory();
-  }, []);
+  }, [user]);
 
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>

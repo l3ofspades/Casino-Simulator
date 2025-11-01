@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { Hand } from "pokersolver";
 import PlayAgain from "./common/Playagian";
 import { useChips } from "../context/ChipContext";
-import { logGameResult } from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import { saveGameHistory } from "../services/historyService";
 
 function Poker({ onExit }) {
+  const { user } = useAuth();
   const { chips, modifyChips } = useChips();
   const [deckId, setDeckId] = useState(null);
   const [playerCards, setPlayerCards] = useState([]);
@@ -89,19 +91,38 @@ function Poker({ onExit }) {
         );
         const winner = Hand.winners([playerHand, dealerHand]);
 
-        if (winner.includes(playerHand)) {
-          setMessage("You win!");
-          modifyChips(currentBet * 2);
-          logGameResult("Win", currentBet, currentBet);
-        } else if (winner.includes(dealerHand)) {
-          setMessage("Opponent Wins!");
-          modifyChips(-currentBet);
-          logGameResult("Loss", currentBet, -currentBet);
-        } else {
-          setMessage("Push! It's a tie.");
-          modifyChips(currentBet);
-          logGameResult("Push", currentBet, 0);
-        }
+     if (winner.includes(playerHand)) {
+  setMessage("You win!");
+  modifyChips(currentBet * 2);
+  await saveGameHistory({
+    player: user?.email || "Guest",
+    game: "Poker",
+    bet: currentBet,
+    result: "Win",
+    netChange: currentBet,
+  });
+} else if (winner.includes(dealerHand)) {
+  setMessage("Opponent Wins!");
+  modifyChips(-currentBet);
+  await saveGameHistory({
+    player: user?.email || "Guest",
+    game: "Poker",
+    bet: currentBet,
+    result: "Loss",
+    netChange: -currentBet,
+  });
+} else {
+  setMessage("Push! It's a tie.");
+  modifyChips(currentBet);
+  await saveGameHistory({
+    player: user?.email || "Guest",
+    game: "Poker",
+    bet: currentBet,
+    result: "Push",
+    netChange: 0,
+  });
+}
+
       } catch (err) {
         setMessage("Error evaluating hands.");
       }
