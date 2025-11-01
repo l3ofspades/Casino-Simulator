@@ -13,6 +13,7 @@ export default function LoginPage() {
 
     try {
       const data = await login(email, password); 
+      console.log("Login response from the backend:", data);
       if (data.token) {
         // Save login state globally
         authLogin(data.user, data.token);

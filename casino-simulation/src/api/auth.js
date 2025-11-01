@@ -1,41 +1,23 @@
-const API_URL = "http://localhost:5000/api/auth/";
+import axios from "axios";
 
-//Login
+const API_URL = "http://localhost:5000/api/auth";
 
 export async function login(email, password) {
   try {
-   const response = await fetch(`${API_URL}login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error during login:", error);
-    return { success: false, message: "Server Error" };
+    const res = await axios.post(`${API_URL}/login`, { email, password });
+    return res.data; 
+  } catch (err) {
+    console.error("Login API error:", err.response?.data || err.message);
+    return { message: "Server error, please try again." };
   }
 }
 
-
-//Register
 export async function register(username, email, password) {
   try {
-    const response = await fetch(`${API_URL}register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, email, password }),
-    });
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error during registration:", error);
-    return { message: "Server Error" };
+    const res = await axios.post(`${API_URL}/register`, { username, email, password });
+    return res.data;
+  } catch (err) {
+    console.error("Registration API error:", err.response?.data || err.message);
+    return { message: "Server error, please try again." };
   }
 }
