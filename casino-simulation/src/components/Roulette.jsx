@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useChips } from '../context/ChipContext';
-import { logGameResult } from '../services/api';
+import { saveGameHistory } from '../services/historyService';
+import { useAuth } from '../context/AuthContext';
 
 const numbers = [
   { number: 0, color: 'green' }, { number: 32, color: 'red' }, { number: 15, color: 'black' },
@@ -20,6 +21,7 @@ const numbers = [
 
 export default function Roulette() {
   const { chips, modifyChips } = useChips();
+  const { user } = useAuth();
   const [angle, setAngle] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
@@ -86,11 +88,24 @@ export default function Roulette() {
       if (winnings > 0) {
         modifyChips(winnings);
         setMessage(`You WON! Landed on ${landedNumber.color} (${landedNumber.number}). You earned ${winnings} chips.`);
-        logGameResult('Win', betAmount, winnings);
+        saveGameHistory({
+          player: user?.email || 'Guest',
+          game: 'Roulette',
+          bet: betAmount,
+          result: 'Win',
+          netChange: winnings,
+        });
+        
       } else {
         modifyChips(-betAmount);
         setMessage(`You lost. Landed on ${landedNumber.color} (${landedNumber.number}).`);
-        logGameResult('Loss', betAmount, -betAmount);
+        saveGameHistory({
+          player: user?.email || 'Guest',
+          game: 'Roulette',
+          bet: betAmount,
+          result: 'Loss',
+          netChange: -betAmount,
+        });
       }
 
       setSpinning(false);
