@@ -69,4 +69,8 @@ app.get('/api/history/:player', async (req, res) => {
   }
 });
 
+export default app;
+// Only listen when not testing
+if (process.env.NODE_ENV !== 'test') {
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}

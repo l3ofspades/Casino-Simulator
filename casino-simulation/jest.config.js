@@ -1,8 +1,16 @@
 export default {
   testEnvironment: "jsdom",
   transform: {
-    "^.+\\.(js|jsx)$": "babel-jest",
+    "^.+\\.[tj]sx?$": "babel-jest",
   },
-  moduleFileExtensions: ["js", "jsx"],
-  setupFilesAfterEnv: ["<rootDir>/src/setupTests.js"],
+  moduleNameMapper: {
+    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+  },
+transformIgnorePatterns: [
+  "/node_modules/(?!(@mongoosejs|mongoose|mongodb|bson)/)"
+],
+
+  
+  setupFiles: ["<rootDir>/jest.env.setup.js"],        
+  setupFilesAfterEnv: ["<rootDir>/jest.dom.setup.js"] 
 };
