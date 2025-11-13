@@ -1,5 +1,37 @@
 import request from "supertest";
-import app from "../../server/server.js"; // go up from src/__tests__ to reach server.js
+
+// 1️⃣ DEFINE mockUserModel BEFORE jest.mock()
+const mockUserModel = {
+  create: jest.fn(async (data) => ({
+    username: data.username,
+    email: data.email,
+  })),
+
+  findOne: jest.fn(async ({ email }) => {
+    if (email === "testuser@example.com") {
+      return {
+        username: "testuser",
+        email: "testuser@example.com",
+        passwordHash: "hashedpw",
+        comparePassword: jest.fn(async (pw) => pw === "password123"),
+      };
+    }
+    return null;
+  }),
+};
+
+// 2️⃣ MOCK MONGOOSE (now mockUserModel exists!)
+jest.mock("mongoose", () => ({
+  Schema: function () {},
+  model: jest.fn(() => mockUserModel),
+  connect: jest.fn(() => Promise.resolve()),
+  connection: {
+    close: jest.fn(() => Promise.resolve())
+  }
+}));
+
+// 3️⃣ Import server AFTER mocks
+import app from "../../server/server.js";
 
 describe("Auth Routes", () => {
   const testUser = {
@@ -10,34 +42,24 @@ describe("Auth Routes", () => {
 
   test("POST /api/auth/register creates a new user", async () => {
     const res = await request(app).post("/api/auth/register").send(testUser);
-
-    // Expect a success status code (adjust based on your route)
     expect(res.statusCode).toBe(200);
-
-    // Expect the response to contain user info or token
     expect(res.body).toHaveProperty("user");
-    expect(res.body.user).toHaveProperty("email", testUser.email);
+    expect(res.body.user.email).toBe(testUser.email);
   });
 
-  test("POST /api/auth/login logs in the existing user", async () => {
+  test("POST /api/auth/login logs in existing user", async () => {
     const res = await request(app)
       .post("/api/auth/login")
-      .send({
-        email: testUser.email,
-        password: testUser.password,
-      });
+      .send({ email: testUser.email, password: testUser.password });
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty("token");
   });
 
-  test("POST /api/auth/login fails with wrong credentials", async () => {
+  test("POST /api/auth/login fails with wrong password", async () => {
     const res = await request(app)
       .post("/api/auth/login")
-      .send({
-        email: testUser.email,
-        password: "wrongpassword",
-      });
+      .send({ email: testUser.email, password: "wrongpassword" });
 
     expect(res.statusCode).toBe(401);
     expect(res.body).toHaveProperty("error");
