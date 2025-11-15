@@ -18,10 +18,12 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 
 // Connect to MongoDB
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+if (process.env.NODE_ENV !== "test") {
+  mongoose
+    .connect(process.env.MONGO_URI)
+    .then(() => console.log('✅ MongoDB connected'))
+    .catch((err) => console.error('MongoDB connection error:', err));
+}
 
 // Basic route
 app.get('/', (req, res) => {
@@ -69,8 +71,11 @@ app.get('/api/history/:player', async (req, res) => {
   }
 });
 
-export default app;
+
 // Only listen when not testing
-if (process.env.NODE_ENV !== 'test') {
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+export default app;
+
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }

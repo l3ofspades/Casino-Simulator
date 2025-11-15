@@ -1,59 +1,92 @@
-import express from "express";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import request from "supertest";
 
-const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET ||"supersecretkey";
+// Mock User model
+const mockUserModel = {
+  findOne: jest.fn(),
+  create: jest.fn(),
+};
 
-// User Registration
-router.post("/register", async (req, res) => {
-    try {
-        const { username, email, password } = req.body;
-        console.log("Register request:", req.body);
-        const existing = await User.findOne({ email });
-        if (existing) {
-            return res.status(400).json({ message: "Email already in use" });
-        }
+jest.mock("../../server/models/User.js", () => ({
+  __esModule: true,
+  default: mockUserModel,
+}));
 
-        const hashed = await bcrypt.hash(password, 10);
-        const user = await User.create({ username, email, passwordHash: hashed });
-        res.status(201).json({ message: "User registered successfully" });
-    } catch (error) {
-        res.status(500).json({ message: "Server error" });
-    }
+// Mock mongoose
+jest.mock("mongoose", () => ({
+  Schema: function () {},
+  model: jest.fn(() => mockUserModel),
+  connect: jest.fn(),
+  connection: { close: jest.fn() }
+}));
+
+// Import real app AFTER mocks
+import app from "../../server/server.js";
+
+describe("Auth Routes", () => {
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("registers a new user", async () => {
+    mockUserModel.findOne.mockResolvedValue(null);
+    mockUserModel.create.mockResolvedValue({
+      username: "testuser",
+      email: "test@example.com",
+    });
+
+    const res = await request(app)
+      .post("/api/auth/register")
+      .send({
+        username: "testuser",
+        email: "test@example.com",
+        password: "password123"
+      });
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body.message).toBe("User registered successfully");
+  });
+
+  test("rejects duplicate email", async () => {
+    mockUserModel.findOne.mockResolvedValue({
+      username: "testuser",
+      email: "test@example.com"
+    });
+
+    const res = await request(app)
+      .post("/api/auth/register")
+      .send({
+        username: "testuser",
+        email: "test@example.com",
+        password: "password123"
+      });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.message).toBe("Email already in use");
+  });
+
+  test("logins an existing user", async () => {
+    const fakeUser = {
+      _id: "123",
+      username: "testuser",
+      email: "test@example.com",
+      passwordHash: "hashedpw",
+      chips: 1000,
+      comparePassword: jest.fn().mockResolvedValue(true),
+    };
+
+    mockUserModel.findOne.mockResolvedValue(fakeUser);
+
+    const res = await request(app)
+      .post("/api/auth/login")
+      .send({
+        email: "test@example.com",
+        password: "password123"
+      });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.token).toBeDefined();
+    expect(res.body.user.username).toBe("testuser");
+  });
+
 });
-
-// User Login
-router.post("/login", async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        console.log("Login request:", req.body);
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ message: "Invalid email or password" });
-        }
-
-        const match = await bcrypt.compare(password, user.passwordHash);
-        if (!match) {
-            return res.status(400).json({ message: "Invalid email or password" });
-        }
-
-
-        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "1h" });
-        res.json({
-  token,
-  user: {
-    _id: user._id,
-    username: user.username,
-    email: user.email,
-    chips: user.chips
-  }
-});
-
-    } catch (error) {
-        res.status(500).json({ message: "Server error" });
-    }
-});
-
-export default router;
