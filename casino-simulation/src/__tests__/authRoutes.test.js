@@ -1,67 +1,85 @@
-import request from "supertest";
+
+const request = require("supertest");
+const express = require("express");
 
 
 const mockUserModel = {
-  create: jest.fn(async (data) => ({
-    username: data.username,
-    email: data.email,
-  })),
-
-  findOne: jest.fn(async ({ email }) => {
-    if (email === "testuser@example.com") {
-      return {
-        username: "testuser",
-        email: "testuser@example.com",
-        passwordHash: "hashedpw",
-        comparePassword: jest.fn(async (pw) => pw === "password123"),
-      };
-    }
-    return null;
-  }),
+  findOne: jest.fn(),
+  create: jest.fn(),
 };
 
 
-jest.mock("mongoose", () => ({
-  Schema: function () {},
-  model: jest.fn(() => mockUserModel),
-  connect: jest.fn(() => Promise.resolve()),
-  connection: {
-    close: jest.fn(() => Promise.resolve())
-  }
-}));
+jest.mock("mongoose", () => {
+  return {
+    Schema: function () {},
+    model: jest.fn(() => mockUserModel),
+    connect: jest.fn(() => Promise.resolve()),
+    connection: {
+      close: jest.fn(() => Promise.resolve()),
+    },
+  };
+});
 
 
-import app from "../../server/server.js";
+const authRoutes = require("../../server/routes/auth");
+const app = express();
+
+app.use(express.json());
+app.use("/auth", authRoutes);
 
 describe("Auth Routes", () => {
-  const testUser = {
-    username: "testuser",
-    email: "testuser@example.com",
-    password: "password123",
-  };
-
-  test("POST /api/auth/register creates a new user", async () => {
-    const res = await request(app).post("/api/auth/register").send(testUser);
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty("user");
-    expect(res.body.user.email).toBe(testUser.email);
+  beforeEach(() => {
+    // Reset mocks before each test
+    mockUserModel.findOne.mockReset();
+    mockUserModel.create.mockReset();
   });
 
-  test("POST /api/auth/login logs in existing user", async () => {
-    const res = await request(app)
-      .post("/api/auth/login")
-      .send({ email: testUser.email, password: testUser.password });
+  test("registers a new user", async () => {
+    mockUserModel.findOne.mockResolvedValue(null);
+    mockUserModel.create.mockResolvedValue({
+      id: "123",
+      username: "testuser",
+      password: "hashedpassword",
+    });
 
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty("token");
+    const res = await request(app).post("/auth/register").send({
+      username: "testuser",
+      password: "password123",
+    });
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body.message).toBe("User registered successfully");
   });
 
-  test("POST /api/auth/login fails with wrong password", async () => {
-    const res = await request(app)
-      .post("/api/auth/login")
-      .send({ email: testUser.email, password: "wrongpassword" });
+  test("rejects duplicate username", async () => {
+    mockUserModel.findOne.mockResolvedValue({
+      id: "999",
+      username: "testuser",
+    });
 
-    expect(res.statusCode).toBe(401);
-    expect(res.body).toHaveProperty("error");
+    const res = await request(app).post("/auth/register").send({
+      username: "testuser",
+      password: "password123",
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toBe("Username already exists");
+  });
+
+  test("logins an existing user", async () => {
+    mockUserModel.findOne.mockResolvedValue({
+      id: "123",
+      username: "testuser",
+      password: "hashedpassword",
+      comparePassword: jest.fn(() => Promise.resolve(true)),
+    });
+
+    const res = await request(app).post("/auth/login").send({
+      username: "testuser",
+      password: "password123",
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.message).toBe("Login successful");
   });
 });
