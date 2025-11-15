@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Hand } from "pokersolver";
-import PlayAgain from "./common/Playagian";
+import PlayAgain from "./common/PlayAgain";
 import { useChips } from "../context/ChipContext";
 import { useAuth } from "../context/AuthContext";
 import { saveGameHistory } from "../services/historyService";

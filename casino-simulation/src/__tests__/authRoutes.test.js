@@ -1,6 +1,6 @@
 import request from "supertest";
 
-// 1️⃣ DEFINE mockUserModel BEFORE jest.mock()
+
 const mockUserModel = {
   create: jest.fn(async (data) => ({
     username: data.username,
@@ -20,7 +20,7 @@ const mockUserModel = {
   }),
 };
 
-// 2️⃣ MOCK MONGOOSE (now mockUserModel exists!)
+
 jest.mock("mongoose", () => ({
   Schema: function () {},
   model: jest.fn(() => mockUserModel),
@@ -30,7 +30,7 @@ jest.mock("mongoose", () => ({
   }
 }));
 
-// 3️⃣ Import server AFTER mocks
+
 import app from "../../server/server.js";
 
 describe("Auth Routes", () => {
