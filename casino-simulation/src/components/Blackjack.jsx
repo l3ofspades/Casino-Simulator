@@ -6,7 +6,7 @@ import backCard from "../assets/card-back.png";
 
 export default function Blackjack() {
   const { chips, modifyChips } = useChips();
-  const { user } = useAuth();
+  const { currentUser } = useAuth();
   const [deckId, setDeckId] = useState(null);
   const [playerCards, setPlayerCards] = useState([]);
   const [dealerCards, setDealerCards] = useState([]);
@@ -133,14 +133,14 @@ export default function Blackjack() {
 
   try {
     console.log("🧠 Attempting to save game history:", {
-      player: user?.email || "Guest",
+      player: currentUser?.email || "Guest",
       game: "Blackjack",
       bet,
       result: resultType,
       netChange,
     });
     const res = await saveGameHistory({
-      player: user?.email || "Guest",
+      player: currentUser?.email || "Guest",
       game: "Blackjack",
       bet,
       result: resultType,

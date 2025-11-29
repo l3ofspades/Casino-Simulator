@@ -16,10 +16,15 @@ export async function login(email, password) {
         body: JSON.stringify({ email, password }),
     });
     const data = await response.json();
-    if (data.token) localStorage.setItem('token', data.token);
+    if (data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+    }
+
     return data;
 }
 
 export function logout() {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
 }

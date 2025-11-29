@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { login } from '../api/auth';
+import { login } from '../services/auth';
 import { useAuth } from '../context/AuthContext.jsx'; 
 
 export default function LoginPage() {

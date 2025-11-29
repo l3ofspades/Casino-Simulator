@@ -7,16 +7,16 @@ const API_URL =
 
 
 //  Fetch current chip balance
-export async function getChips() {
-  const res = await fetch(`${API_URL}/chips`);
+export async function getChips(userId) {
+  const res = await fetch(`${API_URL}/chips/${userId}`);
   if (!res.ok) throw new Error("Failed to fetch chips");
   return res.json();
 }
 
 //  Update chip balance (add/remove)
-export async function updateChips(amount) {
-  const res = await fetch(`${API_URL}/chips`, {
-    method: "POST",
+export async function updateChips(userId, amount) {
+  const res = await fetch(`${API_URL}/chips/${userId}`, {
+    method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ amount }),
   });

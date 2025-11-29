@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useChips } from '../context/ChipContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function ChipWallet() {
     const { chips, modifyChips, loading } = useChips();
+    const { currentUser } = useAuth();
     const [amount, setAmount] = useState('');
 
+    useEffect(() => {
+      setAmount("");
+    }, [currentUser]);
 
-
-    if (loading) {
+   if (loading) {
         return <div style={{ color: '#ccc' }}>Loading chips...</div>;
     }
 

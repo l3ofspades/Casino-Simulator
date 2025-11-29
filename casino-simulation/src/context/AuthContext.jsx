@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -16,7 +16,7 @@ export function AuthProvider({ children }) {
      
       if (savedToken && savedUser && savedUser !== "undefined") {
         setToken(savedToken);
-        setUser(JSON.parse(savedUser));
+        setCurrentUser(JSON.parse(savedUser));
       } else {
         // Clean up any bad data
         localStorage.removeItem("user");
@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
 
   // Login 
   const login = (userData, userToken) => {
-    setUser(userData);
+    setCurrentUser(userData);
     setToken(userToken);
     localStorage.setItem("token", userToken);
     localStorage.setItem("user", JSON.stringify(userData));
@@ -41,14 +41,15 @@ export function AuthProvider({ children }) {
 
   // Logout 
   const logout = () => {
-    setUser(null);
-    setToken(null);
     localStorage.removeItem("token");
-    localStorage.removeItem("user");
+     localStorage.removeItem("user");
+    setCurrentUser(null);
+    setToken(null);
+   
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ currentUser, token, login, logout, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

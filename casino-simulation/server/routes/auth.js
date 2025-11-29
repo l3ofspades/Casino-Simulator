@@ -1,92 +1,75 @@
-import request from "supertest";
+import express from 'express';
+import bycrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
-// Mock User model
-const mockUserModel = {
-  findOne: jest.fn(),
-  create: jest.fn(),
-};
+const router = express.Router();
 
-jest.mock("../../server/models/User.js", () => ({
-  __esModule: true,
-  default: mockUserModel,
-}));
+// register
+router.post('/register', async (req, res) => {
+    try {
+      const { username, email, password } = req.body;
 
-// Mock mongoose
-jest.mock("mongoose", () => ({
-  Schema: function () {},
-  model: jest.fn(() => mockUserModel),
-  connect: jest.fn(),
-  connection: { close: jest.fn() }
-}));
+      // Check if user already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+          return res.status(400).json({ message: 'User already exists' });
+      }
 
-// Import real app AFTER mocks
-import app from "../../server/server.js";
+      // Hash password
+      const passwordHash = await bycrypt.hash(password, 10);
 
-describe("Auth Routes", () => {
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test("registers a new user", async () => {
-    mockUserModel.findOne.mockResolvedValue(null);
-    mockUserModel.create.mockResolvedValue({
-      username: "testuser",
-      email: "test@example.com",
-    });
-
-    const res = await request(app)
-      .post("/api/auth/register")
-      .send({
-        username: "testuser",
-        email: "test@example.com",
-        password: "password123"
+      // Create user with default chips
+      await User.create({
+          username,
+          email,
+          passwordHash,
+          chips: 1000, // default chip balance
       });
 
-    expect(res.statusCode).toBe(201);
-    expect(res.body.message).toBe("User registered successfully");
-  });
-
-  test("rejects duplicate email", async () => {
-    mockUserModel.findOne.mockResolvedValue({
-      username: "testuser",
-      email: "test@example.com"
-    });
-
-    const res = await request(app)
-      .post("/api/auth/register")
-      .send({
-        username: "testuser",
-        email: "test@example.com",
-        password: "password123"
+      res.status(201).json({ message: 'User registered successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
       });
 
-    expect(res.statusCode).toBe(400);
-    expect(res.body.message).toBe("Email already in use");
-  });
+// login
+router.post('/login', async (req, res) => {
+    try {
+      const { email, password } = req.body;
 
-  test("logins an existing user", async () => {
-    const fakeUser = {
-      _id: "123",
-      username: "testuser",
-      email: "test@example.com",
-      passwordHash: "hashedpw",
-      chips: 1000,
-      comparePassword: jest.fn().mockResolvedValue(true),
-    };
+      // Find user by email
+      const user = await User.findOne({ email });
+      if (!user) {
+          return res.status(400).json({ message: 'Invalid credentials' });
+      }
 
-    mockUserModel.findOne.mockResolvedValue(fakeUser);
+      // Check password
+      const isMatch = await bycrypt.compare(password, user.passwordHash);
+      if (!isMatch) {
+          return res.status(400).json({ message: 'Invalid credentials' });
+      }
 
-    const res = await request(app)
-      .post("/api/auth/login")
-      .send({
-        email: "test@example.com",
-        password: "password123"
+      // Create JWT
+      const token = jwt.sign(
+          { userId: user._id },
+          process.env.JWT_SECRET,
+          { expiresIn: '1h' }
+      );
+
+      res.json({ 
+        message: 'Login successful',
+        token,
+        user: {
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+            chips: user.chips,
+        },
+      });
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    } 
       });
 
-    expect(res.statusCode).toBe(200);
-    expect(res.body.token).toBeDefined();
-    expect(res.body.user.username).toBe("testuser");
-  });
-
-});
+export default router;

@@ -1,40 +1,32 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import Home from './pages/Home.jsx';
-import BlackjackPage from './pages/BlackjackPage.jsx';
-import PokerPage from './pages/PokerPage.jsx';
-import RoulettePage from './pages/RoulettePage.jsx';
-import { getChips, updateChips } from './services/api.js';
+import { Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import BlackjackPage from "./pages/BlackjackPage";
+import PokerPage from "./pages/PokerPage";
+import RoulettePage from "./pages/RoulettePage";
+import GameHistoryPage from "./pages/GameHistoryPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import RegisterPage from "./pages/RegisterPage";
+import LoginPage from "./pages/LoginPage";
 
 export default function App() {
-  const [chips, setChips] = useState(1000);
-
-useEffect(() => {
-  (async () => {
-    try {
-      const data = await getChips();
-      setChips(data.chips);
-    } catch (err) {
-      console.error("Error fetching chips:", err);
-    }
-  })();
-}, []);
-
   return (
-    <Router>
-      <nav className="navbar">
-        <Link to="/" className="nav-link">Home</Link>
-        <Link to="/blackjack" className="nav-link">Blackjack</Link>
-        <Link to="/poker" className="nav-link">Poker</Link>
-        <Link to="/roulette" className="nav-link">Roulette</Link>
-        </nav>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/blackjack" element={<BlackjackPage chips={chips} setChips={setChips} />} />
-          <Route path="/poker" element={<PokerPage chips={chips} setChips={setChips} />} />
-          <Route path="/roulette" element={<RoulettePage chips={chips} setChips={setChips} />} />
-        </Routes>
-    </Router>
+      <Route path="/blackjack" element={<BlackjackPage />} />
+      <Route path="/poker" element={<PokerPage />} />
+      <Route path="/roulette" element={<RoulettePage />} />
+
+      <Route
+        path="/history"
+        element={
+          <ProtectedRoute>
+            <GameHistoryPage />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
   );
 }

@@ -2,7 +2,7 @@ import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 
 export default function Home() {
-  const { user, logout } = useAuth();
+  const { currentUser, logout } = useAuth();
 
   return (
     <div
@@ -42,9 +42,9 @@ export default function Home() {
           🎰 Casino Game Simulator
         </h1>
 
-        {user ? (
+        {currentUser ? (
           <>
-            <p>Welcome, {user.username}!</p>
+            <p>Welcome, {currentUser.username}!</p>
             <button
               onClick={logout}
               style={{
