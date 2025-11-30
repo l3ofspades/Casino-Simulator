@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useChips } from '../context/ChipContext';
-import { saveGameHistory } from '../services/historyService';
+import { logGameResult } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 const numbers = [
@@ -21,7 +21,7 @@ const numbers = [
 
 export default function Roulette() {
   const { chips, modifyChips } = useChips();
-  const { user } = useAuth();
+  const { currentUser } = useAuth();
   const [angle, setAngle] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
@@ -29,8 +29,6 @@ export default function Roulette() {
   const [betType, setBetType] = useState('color');
   const [choice, setChoice] = useState('red');
   const [message, setMessage] = useState('');
-
-
 
   useEffect(() => {
     if (betType === 'color') setChoice('red');
@@ -57,55 +55,60 @@ export default function Roulette() {
 
     setTimeout(() => {
       setResult(landedNumber);
-      setAngle(newAngle);
 
       let winnings = 0;
+
       switch (betType) {
         case 'color':
           if (choice === landedNumber.color)
             winnings = choice === 'green' ? betAmount * 14 : betAmount * 2;
           break;
+
         case 'number':
           if (parseInt(choice) === landedNumber.number)
             winnings = betAmount * 36;
           break;
+
         case 'evenodd':
           if (choice === 'even' && landedNumber.number !== 0 && landedNumber.number % 2 === 0)
             winnings = betAmount * 2;
+
           if (choice === 'odd' && landedNumber.number % 2 === 1)
             winnings = betAmount * 2;
           break;
+
         case 'lowhigh':
           if (choice === 'low' && landedNumber.number >= 1 && landedNumber.number <= 18)
             winnings = betAmount * 3;
+
           if (choice === 'high' && landedNumber.number >= 19 && landedNumber.number <= 36)
             winnings = betAmount * 3;
-          break;
-        default:
           break;
       }
 
       if (winnings > 0) {
         modifyChips(winnings);
-        setMessage(`You WON! Landed on ${landedNumber.color} (${landedNumber.number}). You earned ${winnings} chips.`);
-        saveGameHistory({
-          player: user?.email || 'Guest',
-          game: 'Roulette',
-          bet: betAmount,
-          result: 'Win',
-          netChange: winnings,
-        });
-        
+        setMessage(`You WON! Landed on ${landedNumber.color} (${landedNumber.number}). +${winnings} chips`);
+
+        logGameResult(
+          currentUser,
+          'Roulette',
+          betAmount,
+          'Win',
+          winnings
+        );
+
       } else {
         modifyChips(-betAmount);
         setMessage(`You lost. Landed on ${landedNumber.color} (${landedNumber.number}).`);
-        saveGameHistory({
-          player: user?.email || 'Guest',
-          game: 'Roulette',
-          bet: betAmount,
-          result: 'Loss',
-          netChange: -betAmount,
-        });
+
+        logGameResult(
+          currentUser,
+          'Roulette',
+          betAmount,
+          'Loss',
+          -betAmount
+        );
       }
 
       setSpinning(false);
@@ -155,7 +158,7 @@ export default function Roulette() {
       </div>
 
       <button onClick={spinWheel} disabled={spinning}>
-        {spinning ? 'Spinning...' : 'Spin the Wheel'}
+        {spinning ? 'Spinning…' : 'Spin the Wheel'}
       </button>
 
       {message && <p className="message">{message}</p>}

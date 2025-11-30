@@ -16,9 +16,10 @@ export async function login(email, password) {
         body: JSON.stringify({ email, password }),
     });
     const data = await response.json();
+
     if (data.token) {
         localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('userId', data.user._id);
     }
 
     return data;
@@ -26,5 +27,5 @@ export async function login(email, password) {
 
 export function logout() {
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem('userId');
 }
