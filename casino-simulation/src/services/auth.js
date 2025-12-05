@@ -18,14 +18,20 @@ export async function login(email, password) {
     const data = await response.json();
 
     if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userId', data.user._id);
-    }
+        const safeUser = {
+            id: data.user._id,
+            username: data.user.username,
+            email: data.user.email,
+        };
 
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(safeUser));
+    }
+    
     return data;
 }
 
 export function logout() {
     localStorage.removeItem('token');
-    localStorage.removeItem('userId');
+    localStorage.removeItem('user');
 }

@@ -5,11 +5,7 @@ import { useAuth } from '../context/AuthContext';
 export default function ChipWallet() {
     const { chips, modifyChips, loading } = useChips();
     const { currentUser } = useAuth();
-    const [amount, setAmount] = useState('');
-
-    useEffect(() => {
-      setAmount("");
-    }, [currentUser]);
+    
 
    if (loading) {
         return <div style={{ color: '#ccc' }}>Loading chips...</div>;
@@ -18,7 +14,6 @@ export default function ChipWallet() {
     const handleUpdate = async (change) => {
         try {
             await modifyChips(change);
-            setAmount('');
         } catch (error) {
             console.error('Error updating chips:', error);
         }
@@ -42,7 +37,7 @@ export default function ChipWallet() {
         <div style={{ marginTop: 10, color: 'red' }}>
           You’re out of chips!
           <button
-            onClick={() => modifyChips(1000)}
+            onClick={() => handleUpdate(1000)}
             style={{
               marginLeft: 10,
               background: '#222',

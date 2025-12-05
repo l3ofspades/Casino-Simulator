@@ -12,7 +12,7 @@ export const saveGameHistory = async (data) => {
     }
 };
 
-export const getGameHistory = async (player) => {
+export const getGameHistory = async (userId) => {
     try {
         const response = await axios.get(`${API_URL}/${player}`);
         return response.data;

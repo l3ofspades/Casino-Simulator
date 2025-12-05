@@ -23,14 +23,19 @@ export function AuthProvider({ children }) {
   }, []);
 
   // Login
-  const login = (userData, userToken) => {
-    setCurrentUser(userData);   
-    setToken(userToken);
-
-    localStorage.setItem("token", userToken);
-    localStorage.setItem("user", JSON.stringify(userData));
+const login = ( userData, userToken ) => {
+  const safeUser = {
+    id: userData.id,
+    username: userData.username,
+    email: userData.email,
   };
 
+  setCurrentUser(safeUser);
+  setToken(userToken);
+  
+  localStorage.setItem("token", userToken);
+  localStorage.setItem("user", JSON.stringify(safeUser));
+}
   // Logout
   const logout = () => {
     localStorage.removeItem("token");

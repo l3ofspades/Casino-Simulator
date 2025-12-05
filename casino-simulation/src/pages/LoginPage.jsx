@@ -14,9 +14,16 @@ export default function LoginPage() {
     try {
       const data = await login(email, password); 
       console.log("Login response from the backend:", data);
+      
       if (data.token) {
+        const safeUser = {
+          id: data.user._id,
+          username: data.user.username,
+          email: data.user.email,
+        };
+
         // Save login state globally
-        authLogin(data.user, data.token);
+        authLogin(safeUser, data.token);
         setMessage(' Login successful!');
         window.location.href = '/'; // redirect to home
       } else {
