@@ -2,12 +2,16 @@ import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 
+const BackendURL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);  
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const savedToken = localStorage.getItem("token");
     const savedUser = localStorage.getItem("user");
 
