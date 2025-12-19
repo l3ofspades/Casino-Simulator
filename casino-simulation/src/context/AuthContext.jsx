@@ -29,7 +29,7 @@ export function AuthProvider({ children }) {
   // Login
 const login = ( userData, userToken ) => {
   const safeUser = {
-    id: userData.id,
+    _id: userData._id,
     username: userData.username,
     email: userData.email,
   };
