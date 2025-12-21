@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 
-const BackendURL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);  

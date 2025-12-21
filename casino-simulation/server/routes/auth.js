@@ -1,5 +1,5 @@
 import express from 'express';
-import bycrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
@@ -10,6 +10,10 @@ router.post('/register', async (req, res) => {
     try {
       const { username, email, password } = req.body;
 
+      if (!username || !email || !password) {
+          return res.status(400).json({ message: 'Missing required fields' });
+      }
+
       // Check if user already exists
       const existingUser = await User.findOne({ email });
       if (existingUser) {
@@ -17,7 +21,7 @@ router.post('/register', async (req, res) => {
       }
 
       // Hash password
-      const passwordHash = await bycrypt.hash(password, 10);
+      const passwordHash = await bcrypt.hash(password, 10);
 
       // Create user with default chips
       await User.create({
@@ -38,6 +42,10 @@ router.post('/login', async (req, res) => {
     try {
       const { email, password } = req.body;
 
+      if (!email || !password) {
+          return res.status(400).json({ message: 'Missing required fields' });
+      }
+
       // Find user by email
       const user = await User.findOne({ email });
       if (!user) {
@@ -45,7 +53,7 @@ router.post('/login', async (req, res) => {
       }
 
       // Check password
-      const isMatch = await bycrypt.compare(password, user.passwordHash);
+      const isMatch = await bcrypt.compare(password, user.passwordHash);
       if (!isMatch) {
           return res.status(400).json({ message: 'Invalid credentials' });
       }
