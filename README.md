@@ -1,166 +1,111 @@
-# Casino Simulator  
-### Full-Stack MERN Web App  
-Built and designed by **Jonathan Federico Martinez**
+# Casino Simulation (MERN Stack)
+
+A full-stack casino simulation web application featuring Blackjack, Poker, and Roulette, complete with user authentication, chip management, and persistent game history.
+
+This project demonstrates real-world full-stack development practices, including secure authentication, RESTful APIs, cloud database integration, and production deployment.
 
 ---
 
-## Overview  
-Casino Simulator is a full-stack web application where users can log in, play interactive casino-style games (Roulette, Poker, etc.), manage virtual chips, and view their game history — all stored in MongoDB.  
-This project demonstrates complete MERN engineering with clean architecture and modern React state management.
+## Live Demo
+
+Frontend (Live App):  
+https://casino-frontend-xxxxx.onrender.com
+
+Backend API:  
+https://casino-backend-xxxxx.onrender.com
 
 ---
 
-## Features  
-- **User Authentication** – Secure login/registration using JWT + bcrypt  
-- **Protected Routes** – Only logged-in users can access game history  
-- **Persistent Sessions** – Token stored locally for smooth UX  
-- **Roulette Simulation** – Real-time win/loss logic + chip updates  
-- **Game History Tracking** – Every play saved to MongoDB  
-- **Responsive UI** – Mobile + desktop support  
-- **Context API Architecture** – Organized, scalable state management  
+## Tech Stack
+
+### Frontend
+- React (Vite)
+- React Router
+- Context API
+- Custom CSS styling
+
+### Backend
+- Node.js
+- Express
+- MongoDB Atlas
+- Mongoose
+- JWT Authentication
+
+### Deployment & Infrastructure
+- Render (Web Service + Static Site)
+- MongoDB Atlas
+- GitHub (CI/CD)
 
 ---
 
-## Tech Stack  
-**Frontend:** React, Context API, Axios, CSS  
-**Backend:** Node.js, Express.js  
-**Database:** MongoDB (Mongoose)  
-**Auth:** JWT, bcrypt  
-**Version Control:** Git + GitHub  
+## Features
+
+- User registration and login with JWT authentication
+- Protected routes for authenticated users
+- Casino games:
+  - Blackjack
+  - Poker
+  - Roulette
+- Chip wallet with persistent balance
+- Game history saved to MongoDB
+- Client-side routing with refresh-safe navigation
+- Production-ready environment configuration
 
 ---
 
-## Folder Structure  
-```
-casino-simulation/
-├── .gitignore
-├── README.md
-├── __mocks__
-│   └── fileMock.js
-├── babel.config.cjs
-├── eslint.config.js
-├── index.html
-├── jest.config.cjs
-├── jest.dom.setup.js
-├── jest.env.setup.js
-├── jest.setup.js
-├── package-lock.json
-├── package.json
-├── public
-│   ├── Wheel.png
-│   └── vite.svg
-├── server
-│   ├── .env
-│   ├── middleware
-│   │   └── auth.js
-│   ├── models
-│   │   ├── GameHistory.js
-│   │   └── User.js
-│   ├── routes
-│   │   └── auth.js
-│   └── server.js
-├── src
-│   ├── App.jsx
-│   ├── __tests__
-│   │   ├── Blackjack.test.jsx
-│   │   ├── Home.test.jsx
-│   │   ├── authRoutes.test.js
-│   │   ├── blackjackUtils.test.js
-│   │   ├── chipUtils.test.js
-│   │   ├── pokerUtils.test.js
-│   │   └── rouletteLogic.test.js
-│   ├── api
-│   │   └── auth.js
-│   ├── assets
-│   │   ├── animations.css
-│   │   ├── buttons.css
-│   │   ├── card-back.png
-│   │   ├── index.css
-│   │   ├── layout.css
-│   │   ├── tables.css
-│   │   └── theme.css
-│   ├── components
-│   │   ├── Blackjack.jsx
-│   │   ├── ChipWallet.jsx
-│   │   ├── Game.jsx
-│   │   ├── Poker.jsx
-│   │   ├── ProtectedRoute.jsx
-│   │   ├── Roulette.jsx
-│   │   └── common
-│   │       ├── GameSelect.jsx
-│   │       └── PlayAgain.jsx
-│   ├── context
-│   │   ├── AuthContext.jsx
-│   │   └── ChipContext.jsx
-│   ├── main.jsx
-│   ├── pages
-│   │   ├── BlackjackPage.jsx
-│   │   ├── GameHistoryPage.jsx
-│   │   ├── Home.jsx
-│   │   ├── LoginPage.jsx
-│   │   ├── PokerPage.jsx
-│   │   ├── RegisterPage.jsx
-│   │   └── RoulettePage.jsx
-│   ├── services
-│   │   ├── api.js
-│   │   ├── auth.js
-│   │   └── historyService.js
-│   ├── setupTests.js
-│   └── utils
-│       ├── blackjackUtils.js
-│       ├── chipUtils.js
-│       ├── pokerUtils.js
-│       └── rouletteLogic.js
-└── vite.config.js
-```
+## Deployment
+
+This application is deployed as a full-stack production system using Render and MongoDB Atlas, with the frontend and backend hosted as separate services.
+
+### Backend (API Server)
+- Deployed as a Render Web Service
+- Runs continuously in production
+- Handles authentication, chip management, and game history
+- Connects securely to MongoDB Atlas via environment variables
+
+Backend environment variables:
+- MONGO_URI
+- JWT_SECRET
+- FRONTEND_URL
+
+The backend automatically redeploys on pushes to the main branch.
 
 ---
 
-## Installation & Setup  
+### Frontend (Client Application)
+- Deployed as a Render Static Site
+- Built with Vite and served via a global CDN
+- Communicates with the backend via environment-based API configuration
 
-### 1. Clone the repo
-```bash
-git clone https://github.com/l3ofspades/Casino-Simulator.git
-cd Casino-Simulator/casino-simulation
-```
+Frontend environment variable:
+- VITE_BACKEND_API_URL
 
-### 2. Install dependencies
-```bash
-npm install
-cd server && npm install
-```
-
-### 3. Set up environment variables  
-Create a `.env` file inside the **server** folder:
-```
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
-```
-
-### 4. Run the backend
-```bash
-cd server
-npm run dev
-```
-
-### 5. Run the frontend
-```bash
-cd ..
-npm run dev
-```
+Client-side routing is supported via rewrite rules to prevent 404 errors on page refresh.
 
 ---
 
-## Author  
-**Jonathan Federico Martinez**  
-Full-Stack MERN Developer  
-Email: jonathanfederico13@gmail.com  
-LinkedIn: https://www.linkedin.com/in/jonathan-martinez-a9970b1a6  
-GitHub: https://github.com/l3ofspades
+## What This Project Demonstrates
+
+- Full-stack MERN architecture
+- Secure authentication and authorization
+- Separation of concerns between frontend and backend
+- Production deployment and environment configuration
+- Debugging real-world deployment issues
+- Cloud database integration
 
 ---
 
-## Future Enhancements  
-- Add Blackjack and Poker modules  
-- Player leaderboard  
-- Live deployment with MongoDB Atlas  
+## Notes
+
+This project was built as a capstone to demonstrate end-to-end application development, from local development to live production deployment.
+
+---
+
+## Final Checklist
+
+- Backend deployed and connected to MongoDB Atlas
+- Frontend deployed and connected to backend
+- Authentication working in production
+- Protected routes enforced
+- Refresh-safe client-side routing
+- README updated for submission
