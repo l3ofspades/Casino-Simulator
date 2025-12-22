@@ -140,7 +140,7 @@ export default function Blackjack() {
       netChange,
     });
     const res = await saveGameHistory({
-      player: currentUser?.email || "Guest",
+      player: currentUser?.username || "Guest",
       game: "Blackjack",
       bet,
       result: resultType,

@@ -115,7 +115,7 @@ function Poker({ onExit }) {
   setMessage("Push! It's a tie.");
   modifyChips(currentBet);
   await saveGameHistory({
-    player: user?.email || "Guest",
+    player: user?.username || "Guest",
     game: "Poker",
     bet: currentBet,
     result: "Push",

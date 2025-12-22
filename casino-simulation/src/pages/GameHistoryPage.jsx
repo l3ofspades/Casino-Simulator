@@ -18,7 +18,7 @@ export default function GameHistoryPage() {
     async function load () {
       setLoading(true);
       try {
-        const player = currentUser?.email || "Guest";
+        const player = currentUser?.username || "Guest";
         const data = await getGameHistory(player);
 
         if (ignore) return;
