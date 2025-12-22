@@ -9,10 +9,10 @@ This project demonstrates real-world full-stack development practices, including
 ## Live Demo
 
 Frontend (Live App):  
-https://casino-frontend-xxxxx.onrender.com
+https://casino-frontend-seoi.onrender.com
 
 Backend API:  
-https://casino-backend-xxxxx.onrender.com
+https://casino-backend-n7hd.onrender.com
 
 ---
 
