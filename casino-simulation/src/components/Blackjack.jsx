@@ -4,9 +4,23 @@ import { useAuth } from "../context/AuthContext";
 import { saveGameHistory } from "../services/historyService";
 import backCard from "../assets/card-back.png";
 
+function getOrCreateGuestId() {
+  const KEY = "guestId";
+  let id = localStorage.getItem(KEY);
+  if (!id) {
+   id = `guest-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    localStorage.setItem(KEY, id);
+  }
+  return id;
+}
+
 export default function Blackjack() {
   const { chips, modifyChips } = useChips();
   const { currentUser } = useAuth();
+
+  const playerKey = currentUser?.username || getOrCreateGuestId();
+
+
   const [deckId, setDeckId] = useState(null);
   const [playerCards, setPlayerCards] = useState([]);
   const [dealerCards, setDealerCards] = useState([]);
@@ -133,14 +147,14 @@ export default function Blackjack() {
 
   try {
     console.log("🧠 Attempting to save game history:", {
-      player: currentUser?.email || "Guest",
+      player: playerKey,
       game: "Blackjack",
       bet,
       result: resultType,
       netChange,
     });
     const res = await saveGameHistory({
-      player: currentUser?.username || "Guest",
+      player: playerKey,
       game: "Blackjack",
       bet,
       result: resultType,

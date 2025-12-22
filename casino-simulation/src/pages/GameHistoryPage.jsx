@@ -1,8 +1,18 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getGameHistory } from "../services/historyService";
 
+function getOrCreateGuestId() {
+  const KEY = "guestId";
+  let id = localStorage.getItem(KEY);
+  if (!id) {
+    id = `guest-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    localStorage.setItem(KEY, id);
+  }
+  return id;
+}
 
 export default function GameHistoryPage() {
   const { currentUser } = useAuth();
@@ -13,16 +23,15 @@ export default function GameHistoryPage() {
 
   useEffect(() => {
     let ignore = false;
-     
 
-    async function load () {
+    async function load() {
       setLoading(true);
       try {
-        const player = currentUser?.username || "Guest";
-        const data = await getGameHistory(player);
+        const playerKey = currentUser?.username || getOrCreateGuestId();
+        const data = await getGameHistory(playerKey);
 
         if (ignore) return;
-      
+
         setGameHistory(data);
 
         let wins = 0;
@@ -39,14 +48,11 @@ export default function GameHistoryPage() {
       } catch (error) {
         console.error("Failed to fetch game history:", error);
       } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
+        if (!ignore) setLoading(false);
       }
-    };
+    }
 
     load();
-
     return () => {
       ignore = true;
     };
@@ -145,33 +151,15 @@ export default function GameHistoryPage() {
             <tbody>
               {gameHistory.map((entry) => (
                 <tr key={entry._id}>
-                  <td
-                    style={{
-                      padding: "8px",
-                      borderBottom: "1px solid #555",
-                    }}
-                  >
+                  <td style={{ padding: "8px", borderBottom: "1px solid #555" }}>
                     {new Date(entry.timestamp).toLocaleString()}
                   </td>
-
-                  <td
-                    style={{
-                      padding: "8px",
-                      borderBottom: "1px solid #555",
-                    }}
-                  >
+                  <td style={{ padding: "8px", borderBottom: "1px solid #555" }}>
                     {entry.game}
                   </td>
-
-                  <td
-                    style={{
-                      padding: "8px",
-                      borderBottom: "1px solid #555",
-                    }}
-                  >
+                  <td style={{ padding: "8px", borderBottom: "1px solid #555" }}>
                     {entry.bet}
                   </td>
-
                   <td
                     style={{
                       padding: "8px",
@@ -186,7 +174,6 @@ export default function GameHistoryPage() {
                   >
                     {entry.result}
                   </td>
-
                   <td
                     style={{
                       padding: "8px",

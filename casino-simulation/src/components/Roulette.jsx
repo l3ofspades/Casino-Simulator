@@ -1,46 +1,84 @@
-import React, { useState, useEffect } from 'react';
-import { useChips } from '../context/ChipContext';
-import { logGameResult } from '../services/api';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect } from "react";
+import { useChips } from "../context/ChipContext";
+import { logGameResult } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 const numbers = [
-  { number: 0, color: 'green' }, { number: 32, color: 'red' }, { number: 15, color: 'black' },
-  { number: 19, color: 'red' }, { number: 4, color: 'black' }, { number: 21, color: 'red' },
-  { number: 2, color: 'black' }, { number: 25, color: 'red' }, { number: 17, color: 'black' },
-  { number: 34, color: 'red' }, { number: 6, color: 'black' }, { number: 27, color: 'red' },
-  { number: 13, color: 'black' }, { number: 36, color: 'red' }, { number: 11, color: 'black' },
-  { number: 30, color: 'red' }, { number: 8, color: 'black' }, { number: 23, color: 'red' },
-  { number: 10, color: 'black' }, { number: 5, color: 'red' }, { number: 24, color: 'black' },
-  { number: 16, color: 'red' }, { number: 33, color: 'black' }, { number: 1, color: 'red' },
-  { number: 20, color: 'black' }, { number: 14, color: 'red' }, { number: 31, color: 'black' },
-  { number: 9, color: 'red' }, { number: 22, color: 'black' }, { number: 18, color: 'red' },
-  { number: 29, color: 'black' }, { number: 7, color: 'red' }, { number: 28, color: 'black' },
-  { number: 12, color: 'red' }, { number: 35, color: 'black' }, { number: 3, color: 'red' },
-  { number: 26, color: 'black' },
+  { number: 0, color: "green" },
+  { number: 32, color: "red" },
+  { number: 15, color: "black" },
+  { number: 19, color: "red" },
+  { number: 4, color: "black" },
+  { number: 21, color: "red" },
+  { number: 2, color: "black" },
+  { number: 25, color: "red" },
+  { number: 17, color: "black" },
+  { number: 34, color: "red" },
+  { number: 6, color: "black" },
+  { number: 27, color: "red" },
+  { number: 13, color: "black" },
+  { number: 36, color: "red" },
+  { number: 11, color: "black" },
+  { number: 30, color: "red" },
+  { number: 8, color: "black" },
+  { number: 23, color: "red" },
+  { number: 10, color: "black" },
+  { number: 5, color: "red" },
+  { number: 24, color: "black" },
+  { number: 16, color: "red" },
+  { number: 33, color: "black" },
+  { number: 1, color: "red" },
+  { number: 20, color: "black" },
+  { number: 14, color: "red" },
+  { number: 31, color: "black" },
+  { number: 9, color: "red" },
+  { number: 22, color: "black" },
+  { number: 18, color: "red" },
+  { number: 29, color: "black" },
+  { number: 7, color: "red" },
+  { number: 28, color: "black" },
+  { number: 12, color: "red" },
+  { number: 35, color: "black" },
+  { number: 3, color: "red" },
+  { number: 26, color: "black" },
 ];
+
+function getOrCreateGuestId() {
+  const KEY = "guestId";
+  let id = localStorage.getItem(KEY);
+  if (!id) {
+    id = `guest-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    localStorage.setItem(KEY, id);
+  }
+  return id;
+}
 
 export default function Roulette() {
   const { chips, modifyChips } = useChips();
   const { currentUser } = useAuth();
+
+  // ✅ username if logged in; otherwise persistent guest id
+  const playerKey = currentUser?.username || getOrCreateGuestId();
+
   const [angle, setAngle] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
-  const [bet, setBet] = useState('');
-  const [betType, setBetType] = useState('color');
-  const [choice, setChoice] = useState('red');
-  const [message, setMessage] = useState('');
+  const [bet, setBet] = useState("");
+  const [betType, setBetType] = useState("color");
+  const [choice, setChoice] = useState("red");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (betType === 'color') setChoice('red');
-    if (betType === 'number') setChoice('0');
-    if (betType === 'evenodd') setChoice('even');
-    if (betType === 'lowhigh') setChoice('low');
+    if (betType === "color") setChoice("red");
+    if (betType === "number") setChoice("0");
+    if (betType === "evenodd") setChoice("even");
+    if (betType === "lowhigh") setChoice("low");
   }, [betType]);
 
   const spinWheel = () => {
-    const betAmount = parseInt(bet);
+    const betAmount = parseInt(bet, 10);
     if (!betAmount || betAmount <= 0 || betAmount > chips) {
-      setMessage('Please place a valid bet.');
+      setMessage("Please place a valid bet.");
       return;
     }
 
@@ -53,73 +91,68 @@ export default function Roulette() {
     setSpinning(true);
     setAngle(newAngle);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       setResult(landedNumber);
 
       let winnings = 0;
 
       switch (betType) {
-        case 'color':
-          if (choice === landedNumber.color)
-            winnings = choice === 'green' ? betAmount * 14 : betAmount * 2;
+        case "color":
+          if (choice === landedNumber.color) {
+            winnings = choice === "green" ? betAmount * 14 : betAmount * 2;
+          }
           break;
 
-        case 'number':
-          if (parseInt(choice) === landedNumber.number)
-            winnings = betAmount * 36;
+        case "number":
+          if (parseInt(choice, 10) === landedNumber.number) winnings = betAmount * 36;
           break;
 
-        case 'evenodd':
-          if (choice === 'even' && landedNumber.number !== 0 && landedNumber.number % 2 === 0)
+        case "evenodd":
+          if (choice === "even" && landedNumber.number !== 0 && landedNumber.number % 2 === 0)
             winnings = betAmount * 2;
-
-          if (choice === 'odd' && landedNumber.number % 2 === 1)
-            winnings = betAmount * 2;
+          if (choice === "odd" && landedNumber.number % 2 === 1) winnings = betAmount * 2;
           break;
 
-        case 'lowhigh':
-          if (choice === 'low' && landedNumber.number >= 1 && landedNumber.number <= 18)
+        case "lowhigh":
+          if (choice === "low" && landedNumber.number >= 1 && landedNumber.number <= 18)
             winnings = betAmount * 3;
+          if (choice === "high" && landedNumber.number >= 19 && landedNumber.number <= 36)
+            winnings = betAmount * 3;
+          break;
 
-          if (choice === 'high' && landedNumber.number >= 19 && landedNumber.number <= 36)
-            winnings = betAmount * 3;
+        default:
           break;
       }
 
-      if (winnings > 0) {
-        modifyChips(winnings);
-        setMessage(`You WON! Landed on ${landedNumber.color} (${landedNumber.number}). +${winnings} chips`);
+      try {
+        if (winnings > 0) {
+          modifyChips(winnings);
+          setMessage(
+            `You WON! Landed on ${landedNumber.color} (${landedNumber.number}). +${winnings} chips`
+          );
 
-        logGameResult(
-          currentUser,
-          'Roulette',
-          betAmount,
-          'Win',
-          winnings
-        );
+          // ✅ pass string playerKey
+          await logGameResult(playerKey, "Roulette", betAmount, "Win", winnings);
+        } else {
+          modifyChips(-betAmount);
+          setMessage(`You lost. Landed on ${landedNumber.color} (${landedNumber.number}).`);
 
-      } else {
-        modifyChips(-betAmount);
-        setMessage(`You lost. Landed on ${landedNumber.color} (${landedNumber.number}).`);
-
-        logGameResult(
-          currentUser,
-          'Roulette',
-          betAmount,
-          'Loss',
-          -betAmount
-        );
+          // ✅ pass string playerKey
+          await logGameResult(playerKey, "Roulette", betAmount, "Loss", -betAmount);
+        }
+      } catch (err) {
+        console.error("Failed to log roulette history:", err);
+      } finally {
+        setSpinning(false);
       }
-
-      setSpinning(false);
     }, 5000);
   };
 
   let choiceOptions = [];
-  if (betType === 'color') choiceOptions = ['red', 'black', 'green'];
-  if (betType === 'number') choiceOptions = numbers.map(n => n.number.toString());
-  if (betType === 'evenodd') choiceOptions = ['even', 'odd'];
-  if (betType === 'lowhigh') choiceOptions = ['low', 'high'];
+  if (betType === "color") choiceOptions = ["red", "black", "green"];
+  if (betType === "number") choiceOptions = numbers.map((n) => n.number.toString());
+  if (betType === "evenodd") choiceOptions = ["even", "odd"];
+  if (betType === "lowhigh") choiceOptions = ["low", "high"];
 
   return (
     <div className="game-container">
@@ -152,13 +185,15 @@ export default function Roulette() {
 
         <select value={choice} onChange={(e) => setChoice(e.target.value)} disabled={spinning}>
           {choiceOptions.map((opt, idx) => (
-            <option key={idx} value={opt}>{opt}</option>
+            <option key={idx} value={opt}>
+              {opt}
+            </option>
           ))}
         </select>
       </div>
 
       <button onClick={spinWheel} disabled={spinning}>
-        {spinning ? 'Spinning…' : 'Spin the Wheel'}
+        {spinning ? "Spinning…" : "Spin the Wheel"}
       </button>
 
       {message && <p className="message">{message}</p>}
