@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { fetchHistory } from "../services/historyService";
 
-const BASE = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:5000";
 
 export default function GameHistoryPage() {
   const { currentUser } = useAuth();
@@ -12,13 +12,17 @@ export default function GameHistoryPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchGameHistory = async () => {
+    let ignore = false;
+     
+
+    async function load () {
+      setLoading(true);
       try {
         const player = currentUser?.email || "Guest";
+        const data = await fetchHistory(player);
 
-        const response = await fetch(`${BASE}/api/history/${player}`);
-        const data = await response.json();
-
+        if (ignore) return;
+      
         setGameHistory(data);
 
         let wins = 0;
@@ -28,18 +32,24 @@ export default function GameHistoryPage() {
         data.forEach((entry) => {
           if (entry.result === "Win") wins++;
           else if (entry.result === "Loss") losses++;
-          totalNet += entry.netChange;
+          totalNet += Number(entry.netChange || 0);
         });
 
         setStats({ wins, losses, totalNet });
       } catch (error) {
         console.error("Failed to fetch game history:", error);
       } finally {
-        setLoading(false);
+        if (!ignore) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchGameHistory();
+    load();
+
+    return () => {
+      ignore = true;
+    };
   }, [currentUser]);
 
   return (
@@ -181,7 +191,7 @@ export default function GameHistoryPage() {
                     style={{
                       padding: "8px",
                       borderBottom: "1px solid #555",
-                      color: entry.netChange >= 0 ? "lime" : "red",
+                      color: Number(entry.netChange) >= 0 ? "lime" : "red",
                     }}
                   >
                     {entry.netChange}

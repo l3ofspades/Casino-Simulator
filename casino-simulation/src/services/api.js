@@ -1,11 +1,7 @@
 
 
-const API_BASE =
-  `${import.meta.env.VITE_BACKEND_API_URL || "http://localhost:5000"}/api`;
-
-
-
-
+const BASE_URL = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:5000";
+const API_URL = `${BASE_URL}/api`;
 //  Fetch current chip balance
 export async function getChips(userId) {
   const res = await fetch(`${API_URL}/chips/${userId}`);
