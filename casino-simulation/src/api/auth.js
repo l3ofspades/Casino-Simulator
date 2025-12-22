@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/auth";
+const API_URL =
+  `${import.meta.env.VITE_BACKEND_API_URL || "http://localhost:5000"}/api/auth`;
+
 
 export async function login(email, password) {
   try {

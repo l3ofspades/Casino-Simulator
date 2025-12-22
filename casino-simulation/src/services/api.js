@@ -1,8 +1,8 @@
 
 
-const API_URL =
-  (typeof process !== "undefined" && process.env?.VITE_API_URL) ||
-  "http://localhost:5000/api";
+const API_BASE =
+  `${import.meta.env.VITE_BACKEND_API_URL || "http://localhost:5000"}/api`;
+
 
 
 
