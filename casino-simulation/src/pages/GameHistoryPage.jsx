@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { fetchHistory } from "../services/historyService";
+import { getGameHistory } from "../services/historyService";
 
 
 export default function GameHistoryPage() {
@@ -19,7 +19,7 @@ export default function GameHistoryPage() {
       setLoading(true);
       try {
         const player = currentUser?.email || "Guest";
-        const data = await fetchHistory(player);
+        const data = await getGameHistory(player);
 
         if (ignore) return;
       
