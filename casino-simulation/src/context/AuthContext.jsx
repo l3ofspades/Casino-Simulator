@@ -28,11 +28,25 @@ export function AuthProvider({ children }) {
 
   // Login
 const login = ( userData, userToken ) => {
+
+  const resolvedId = 
+  userData?._id ||
+  userData?.id ||
+  userData?.user?._id ||
+  userData?.user?.id;
+
+  console.log("Auth login userData:", userData);
+  console.log("Resolved user id:", resolvedId);
+
   const safeUser = {
-    _id: userData._id,
-    username: userData.username,
-    email: userData.email,
+    _id: resolvedId,
+    username: userData?.username || userData?.user?.username,
+    email: userData?.email || userData?.user?.email,
   };
+
+  if (!safeUser._id) {
+    console.warn("Login succeeded but no user id found in response:", userData);
+  }
 
   setCurrentUser(safeUser);
   setToken(userToken);

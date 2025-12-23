@@ -17,7 +17,7 @@ export default function LoginPage() {
       
       if (data.token) {
         const safeUser = {
-          id: data.user._id,
+          _id: data.user._id,
           username: data.user.username,
           email: data.user.email,
         };

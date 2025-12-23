@@ -16,6 +16,8 @@ export function ChipProvider({ children }) {
 
   useEffect(() => {
     async function fetchChips() {
+      console.log("ChipContext currentUser:", currentUser);
+      
       // GUEST
       if (!currentUser) {
         const stored = localStorage.getItem("guestChips");
@@ -23,6 +25,7 @@ export function ChipProvider({ children }) {
         setChips(guestChips);
         setLoading(false);
         return;
+      
       }
 
       // SAFETY: user exists but no id yet
