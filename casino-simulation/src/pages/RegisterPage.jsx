@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { register } from '../services/auth';
 import { Link, useNavigate } from 'react-router-dom';
+import PageTitle from '../components/PageTitle';
 
 export default function RegisterPage() {
     const [username, setUsername] = useState('');
@@ -23,6 +24,8 @@ export default function RegisterPage() {
     };
 
     return (
+        <>
+        <PageTitle>Register | Casino Simulator</PageTitle>
         <div style={{ textAlign: 'center', marginTop: '100px' }}>
             <h2>Register</h2>
             <form onSubmit={handleRegister} style={{ display: 'inline-block', textAlign: 'left' }}>
@@ -96,5 +99,6 @@ export default function RegisterPage() {
             </form>
             {message && <p style={{ marginTop: "20px" }}>{message}</p>}
         </div>
+        </>
     );
 }
