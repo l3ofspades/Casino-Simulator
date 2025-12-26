@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getGameHistory } from "../services/historyService";
+import { useChips } from "../context/ChipContext";
 
 function getOrCreateGuestId() {
   const KEY = "guestId";
@@ -16,6 +17,7 @@ function getOrCreateGuestId() {
 
 export default function GameHistoryPage() {
   const { currentUser } = useAuth();
+  const { chips } = useChips();
   const [gameHistory, setGameHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ wins: 0, losses: 0, totalNet: 0 });
@@ -39,6 +41,7 @@ export default function GameHistoryPage() {
         let totalNet = 0;
 
         data.forEach((entry) => {
+          console.log(entry);
           if (entry.result === "Win") wins++;
           else if (entry.result === "Loss") losses++;
           totalNet += Number(entry.netChange || 0);
@@ -91,6 +94,13 @@ export default function GameHistoryPage() {
             </div>
             <div>
               💰 Total Net:{" "}
+             <span style={{ color: chips >= 0 ? "lime" : "red" }}>
+              {chips}
+              </span>
+            </div>
+
+            <div>
+             📈 Profit/Loss:{" "}
               <span style={{ color: stats.totalNet >= 0 ? "lime" : "red" }}>
                 {stats.totalNet}
               </span>
