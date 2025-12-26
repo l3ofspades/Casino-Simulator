@@ -14,10 +14,11 @@ export default function RegisterPage() {
         e.preventDefault();
         const response = await register(username, email, password);
         if (response.message === 'User registered successfully') {
-            setMessage('Registration successful! You can now log in.');
+            setMessage('Rederecting to login...');
             setUsername('');
             setEmail('');
             setPassword('');
+            navigate('/login');
         } else {
             setMessage(response.message || 'Registration failed. Please try again.');
         }
@@ -28,7 +29,10 @@ export default function RegisterPage() {
         <PageTitle>Register | Casino Simulator</PageTitle>
         <div style={{ textAlign: 'center', marginTop: '100px' }}>
             <h2>Register</h2>
-            <form onSubmit={handleRegister} style={{ display: 'inline-block', textAlign: 'left' }}>
+
+            <form 
+            onSubmit={handleRegister} style={{ display: 'inline-block', textAlign: 'left' }}>
+
                 <div style={{ marginBottom: '10px' }}>
                     <label>Username:</label><br />
                     <input
