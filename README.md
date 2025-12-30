@@ -101,7 +101,7 @@ This project was built as a capstone to demonstrate end-to-end application devel
 
 ---
 
-## Submission Checklist
+## Checklist
 
 - Backend deployed and connected to MongoDB Atlas
 - Frontend deployed and connected to backend
