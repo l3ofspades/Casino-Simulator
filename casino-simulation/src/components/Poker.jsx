@@ -16,6 +16,12 @@ function getOrCreateGuestId() {
   return id;
 }
 
+function toPokerSolverCode(code) {
+  const rank = code[0] === "0" ? "T" : code[0];
+  const suit = code[1].toLowerCase();
+  return `${rank}${suit}`;
+}
+
 function Poker({ onExit }) {
   const { currentUser } = useAuth();
   const { chips, modifyChips } = useChips();
@@ -121,12 +127,21 @@ function Poker({ onExit }) {
       setRoundStage("showdown");
 
       try {
-        const playerHand = Hand.solve(
-          [...playerCards, ...communityCards].map((c) => c.code)
+       const playerCodes = [...playerCards, ...communityCards].map((c) =>
+          toPokerSolverCode(c.code)
         );
-        const dealerHand = Hand.solve(
-          [...dealerCards, ...communityCards].map((c) => c.code)
+        const dealerCodes = [...dealerCards, ...communityCards].map((c) =>
+          toPokerSolverCode(c.code)
         );
+
+        console.log("Player raw:", [...playerCards, ...communityCards].map(c => c.code));
+        console.log("Player solver:", playerCodes);
+        console.log("Dealer raw:", [...dealerCards, ...communityCards].map(c => c.code));
+        console.log("Dealer solver:", dealerCodes);
+
+        const playerHand = Hand.solve(playerCodes);
+        const dealerHand = Hand.solve(dealerCodes);
+
         const winners = Hand.winners([playerHand, dealerHand]);
 
         const playerKey = getPlayerKey();
